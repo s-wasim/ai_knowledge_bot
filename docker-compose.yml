@@ -1,0 +1,33 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8501:8501"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    volumes:
+      - ./repos:/app/repos
+    networks:
+      - kb-network
+
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: knowledgebot
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kb-network
+
+networks:
+  kb-network:
+    driver: bridge
