@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "ai-knowledge-bot"
+version = "0.1.0"
+description = "AI-powered codebase knowledge bot"
+requires-python = ">=3.10"
+dependencies = [
+    "psycopg2-binary>=2.9",
+    "pymysql>=1.0",
+    "pyyaml>=6.0",
+    "jwt>=1.3",
+]

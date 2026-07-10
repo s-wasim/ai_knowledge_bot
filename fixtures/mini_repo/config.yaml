@@ -1,0 +1,18 @@
+# Application configuration
+server:
+  host: "0.0.0.0"
+  port: 8080
+  debug: true
+
+database:
+  url: "postgresql://localhost:5432/ai_knowledge_bot"
+  pool_size: 20
+  timeout: 30
+
+auth:
+  jwt_secret: "${JWT_SECRET}"
+  session_expiry_hours: 24
+
+logging:
+  level: "INFO"
+  format: "json"
