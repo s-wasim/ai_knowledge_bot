@@ -50,6 +50,8 @@ class Chunk(Base):
 
 @event.listens_for(Chunk.__table__, "after_create")
 def _add_tsvector_columns(target, connection, **kw):
+    if connection.dialect.name != "postgresql":
+        return
     connection.execute(
         DDL(
             "ALTER TABLE chunks ADD COLUMN IF NOT EXISTS tsv tsvector "
