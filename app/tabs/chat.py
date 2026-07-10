@@ -4,7 +4,7 @@ from app.db import get_session, Repo
 from app.graph.build import build_rag_graph, set_retriever
 from app.graph.state import RagState
 from app.retrieval.base import ChunkData
-from app.retrieval.fts import FtsRetriever
+from app.retrieval.factory import create_retriever, get_mode_display
 
 
 def init_session():
@@ -22,7 +22,8 @@ def tab_chat():
     st.markdown("### 💬 Chat with your codebase")
 
     # Mode badge
-    mode_badge = '<span style="background:#f0f2f6;padding:2px 10px;border-radius:10px;font-size:0.8em">Full-text search</span>'
+    retriever, mode = create_retriever(get_session)
+    mode_badge = f'<span style="background:#f0f2f6;padding:2px 10px;border-radius:10px;font-size:0.8em">{get_mode_display(mode)}</span>'
     st.markdown(f"**Retrieval mode**: {mode_badge}", unsafe_allow_html=True)
 
     # Repo selector
@@ -40,7 +41,7 @@ def tab_chat():
 
     # Initialize retriever for this repo
     if not st.session_state.retriever_initialized:
-        retriever = FtsRetriever(get_session)
+        retriever, mode = create_retriever(get_session)
         set_retriever(retriever)
         st.session_state.retriever_initialized = True
 

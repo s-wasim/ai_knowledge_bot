@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from app.db import get_session, Repo, Chunk
+from app.ingest.embedder import embed_texts, is_voyage_available
 from app.ingest.walker import walk_directory
 from app.ingest.chunker import chunk_file
 
@@ -48,6 +49,16 @@ def ingest_repo(
             total_chunks += len(file_chunks)
             if progress_callback is not None:
                 progress_callback(total_files, len(file_chunks), path_str)
+
+        if is_voyage_available():
+            texts_to_embed = [c.content for c in all_chunks]
+            try:
+                embeddings = embed_texts(texts_to_embed)
+                if embeddings:
+                    for chunk, embedding in zip(all_chunks, embeddings):
+                        chunk.embedding = embedding
+            except Exception:
+                logger.exception("Embedding failed, falling back to FTS-only mode")
 
         for chunk in all_chunks:
             session.add(chunk)

@@ -3,19 +3,67 @@ from pathlib import Path
 
 import streamlit as st
 
+from app.ingest.embedder import is_voyage_available
 from app.ingest.pipeline import ingest_repo
 from app.ingest.walker import DEFAULT_ALLOWLIST
+from app.retrieval.factory import get_mode_display
 
 
 def tab_ingest():
-    mode_badge = '<span style="background:#f0f2f6;padding:2px 10px;border-radius:10px;font-size:0.8em">Full-text search</span>'
+    mode = "vector" if is_voyage_available() else "fts"
+    mode_badge = f'<span style="background:#f0f2f6;padding:2px 10px;border-radius:10px;font-size:0.8em">{get_mode_display(mode)}</span>'
     st.markdown(f"**Retrieval mode**: {mode_badge}", unsafe_allow_html=True)
     st.divider()
 
     mode = st.radio("Source type", ["Local Folder", "GitHub URL"], horizontal=True)
 
     if mode == "GitHub URL":
-        st.info("GitHub ingestion coming soon — use Local Folder for now.")
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            url_value = st.text_input(
+                "GitHub URL",
+                value="https://github.com/owner/repo",
+                key="github_url",
+            )
+        with col2:
+            branch_value = st.text_input("Branch (optional)", value="", key="github_branch")
+
+        if st.button("Ingest from GitHub", type="primary"):
+            if not url_value or url_value == "https://github.com/owner/repo":
+                st.error("Please enter a valid GitHub URL.")
+                return
+
+            progress_bar = st.progress(0, text="Downloading and ingesting...")
+            status_text = st.empty()
+
+            files_processed = [0]
+
+            def progress(current, chunk_added, filename):
+                files_processed[0] = current
+                progress_bar.progress(min(current / max(files_processed[0], 1), 1.0))
+                status_text.text(f"Processed {current} files, last: {filename}")
+
+            try:
+                from app.ingest.github import ingest_github_url
+
+                repo = ingest_github_url(
+                    url=url_value,
+                    branch=branch_value if branch_value else None,
+                    progress_callback=progress,
+                )
+                progress_bar.progress(1.0)
+                status_text.empty()
+                st.success(
+                    f"Ingested **{repo.name}** from GitHub\n\n"
+                    f"- **Files**: {repo.file_count}\n"
+                    f"- **Chunks**: {repo.chunk_count}\n"
+                    f"- **Source**: {repo.source_url}"
+                )
+            except Exception as e:
+                progress_bar.empty()
+                status_text.empty()
+                st.error(f"GitHub ingest failed: {e}")
+
         return
 
     col1, col2 = st.columns(2)
