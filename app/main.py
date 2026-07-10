@@ -1,4 +1,11 @@
 import streamlit as st
+from app.db import init_db
+
+# Initialize database on startup
+try:
+    init_db()
+except Exception as e:
+    st.warning(f"Database not available yet: {e}")
 
 from app.tabs.ingest import tab_ingest
 from app.tabs.chat import tab_chat
