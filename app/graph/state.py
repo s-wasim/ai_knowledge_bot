@@ -26,3 +26,4 @@ class RagState(TypedDict):
     answer: str | None
     citations: list[Citation]
     mode: Literal["vector", "fts"]
+    repo_id: int | None

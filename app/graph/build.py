@@ -18,14 +18,8 @@ def get_retriever():
     return _retriever
 
 
-def rewrite_query(state: RagState) -> dict:
-    logger.info("rewrite_query: passing question through as rewritten_query")
-    return {"rewritten_query": state["question"]}
-
-
-def retrieve(state: RagState) -> dict:
-    logger.info("retrieve: stub — no-op")
-    return {}
+from app.graph.nodes.rewrite import rewrite_query
+from app.graph.nodes.retrieve import retrieve
 
 
 def grade_chunks(state: RagState) -> dict:
