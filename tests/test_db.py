@@ -1,3 +1,5 @@
+from unittest.mock import patch, MagicMock
+
 import pytest
 
 from sqlalchemy import create_engine, inspect
@@ -116,3 +118,49 @@ class TestCRUD:
 
         assert db_session.get(Repo, repo_id) is None
         assert db_session.get(Chunk, chunk.id) is None
+
+
+@patch("app.db.create_engine")
+def test_init_db_retry_success(mock_create_engine):
+    """init_db should retry and eventually succeed."""
+    from app.db import init_db
+
+    engine = MagicMock()
+    engine.dialect.name = "sqlite"  # non-postgres, skip DDL
+    mock_create_engine.side_effect = [Exception("Conn failed"), Exception("Conn failed"), engine]
+
+    result = init_db(retries=5, delay=0.1)
+    assert result is not None
+    assert mock_create_engine.call_count == 3
+
+
+@patch("app.db.create_engine")
+def test_init_db_retry_failure(mock_create_engine):
+    """init_db should raise after exhausting retries."""
+    from app.db import init_db
+
+    mock_create_engine.side_effect = Exception("Persistent failure")
+
+    with pytest.raises(Exception, match="Persistent failure"):
+        init_db(retries=3, delay=0.1)
+    assert mock_create_engine.call_count == 3
+
+
+@patch("app.db.create_engine")
+def test_get_session_calls_init_db(mock_create_engine):
+    """get_session should call init_db if not initialized."""
+    from app.db import get_session, _scoped_session
+
+    # Reset global state
+    import app.db
+    app.db._scoped_session = None
+    app.db._engine = None
+    app.db._session_factory = None
+
+    engine = MagicMock()
+    engine.dialect.name = "sqlite"
+    mock_create_engine.return_value = engine
+
+    session = get_session()
+    assert session is not None
+    mock_create_engine.assert_called_once()
