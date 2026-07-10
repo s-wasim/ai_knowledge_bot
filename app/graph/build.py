@@ -18,13 +18,9 @@ def get_retriever():
     return _retriever
 
 
-from app.graph.nodes.rewrite import rewrite_query
+from app.graph.nodes.grade import grade_chunks
 from app.graph.nodes.retrieve import retrieve
-
-
-def grade_chunks(state: RagState) -> dict:
-    logger.info("grade_chunks: stub — no-op")
-    return {}
+from app.graph.nodes.rewrite import rewrite_query
 
 
 def answer_not_found(state: RagState) -> dict:
