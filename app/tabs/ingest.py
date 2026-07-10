@@ -96,6 +96,5 @@ def tab_ingest():
                 f"- **Source**: Local folder"
             )
         except Exception as e:
-            progress_bar.empty()
             status_text.empty()
             st.error(f"Ingest failed: {e}")

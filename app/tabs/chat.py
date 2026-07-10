@@ -21,9 +21,15 @@ def tab_chat():
 
     st.markdown("### 💬 Chat with your codebase")
 
-    # Mode badge
-    retriever, mode = create_retriever(get_session)
-    mode_badge = f'<span style="background:#f0f2f6;padding:2px 10px;border-radius:10px;font-size:0.8em">{get_mode_display(mode)}</span>'
+    # Initialize retriever once
+    if not st.session_state.get("retriever_initialized", False):
+        _retriever, _mode = create_retriever(get_session)
+        set_retriever(_retriever)
+        st.session_state.retriever_initialized = True
+        st.session_state._retrieval_mode = _mode
+
+    _mode = st.session_state.get("_retrieval_mode", "fts")
+    mode_badge = f'<span style="background:#f0f2f6;padding:2px 10px;border-radius:10px;font-size:0.8em">{get_mode_display(_mode)}</span>'
     st.markdown(f"**Retrieval mode**: {mode_badge}", unsafe_allow_html=True)
 
     # Repo selector
@@ -38,12 +44,6 @@ def tab_chat():
     repo_options = {f"{r.name} ({r.file_count} files, {r.chunk_count} chunks)": r.id for r in repos}
     selected_label = st.selectbox("Select repo", options=list(repo_options.keys()))
     repo_id = repo_options[selected_label]
-
-    # Initialize retriever for this repo
-    if not st.session_state.retriever_initialized:
-        retriever, mode = create_retriever(get_session)
-        set_retriever(retriever)
-        st.session_state.retriever_initialized = True
 
     # Display chat messages
     for msg in st.session_state.messages:
@@ -99,7 +99,7 @@ def tab_chat():
             graded=[],
             answer=None,
             citations=[],
-            mode="fts",
+            mode=st.session_state.get("_retrieval_mode", "fts"),
             repo_id=repo_id,
         )
 
