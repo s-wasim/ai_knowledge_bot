@@ -54,8 +54,31 @@ def tab_chat():
             if msg["role"] == "assistant" and "graded" in msg:
                 _show_graded_chunks(msg)
 
-    # Chat input
-    if prompt := st.chat_input("Ask a question about the codebase..."):
+    # Quick-ask buttons in sidebar
+    with st.sidebar:
+        st.markdown("### Quick Questions")
+
+        quick_questions = [
+            "Where is the database connection configured?",
+            "How does authentication work?",
+            "How do I change it to use MySQL instead?",
+            "How does the notification system work?",
+            "What environment variables does the application use?",
+        ]
+
+        for q in quick_questions:
+            if st.button(q, key=f"quick_{hash(q)}", use_container_width=True):
+                st.session_state._quick_question = q
+                st.rerun()
+
+        if st.button("Clear chat history", use_container_width=True):
+            st.session_state.messages = []
+            st.rerun()
+
+    # Check for pending quick question
+    quick_question = st.session_state.pop("_quick_question", None)
+
+    if prompt := quick_question or st.chat_input("Ask a question about the codebase..."):
         # Add user message
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
