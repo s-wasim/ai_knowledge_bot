@@ -10,7 +10,6 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     create_engine,
-    event,
 )
 from sqlalchemy.orm import declarative_base, relationship, scoped_session, sessionmaker
 from sqlalchemy import DDL
@@ -48,27 +47,6 @@ class Chunk(Base):
     repo = relationship("Repo", back_populates="chunks")
 
 
-@event.listens_for(Chunk.__table__, "after_create")
-def _add_tsvector_columns(target, connection, **kw):
-    if connection.dialect.name != "postgresql":
-        return
-    connection.execute(
-        DDL(
-            "ALTER TABLE chunks ADD COLUMN IF NOT EXISTS tsv tsvector "
-            "GENERATED ALWAYS AS (to_tsvector('english', coalesce(content, ''))) STORED"
-        )
-    )
-    connection.execute(
-        DDL("CREATE INDEX IF NOT EXISTS ix_chunks_tsv ON chunks USING gin (tsv)")
-    )
-    connection.execute(
-        DDL(
-            "CREATE INDEX IF NOT EXISTS ix_chunks_embedding "
-            "ON chunks USING hnsw (embedding vector_cosine_ops)"
-        )
-    )
-
-
 _engine = None
 _session_factory = None
 _scoped_session = None
@@ -79,7 +57,7 @@ def init_db(retries=10, delay=3):
 
     database_url = os.environ.get(
         "DATABASE_URL",
-        "postgresql://postgres:postgres@localhost:5432/knowledgebot",
+        "postgresql://postgres:postgres@db:5432/knowledgebot",
     )
 
     for attempt in range(1, retries + 1):
@@ -96,6 +74,25 @@ def init_db(retries=10, delay=3):
     _scoped_session = scoped_session(_session_factory)
 
     Base.metadata.create_all(_engine)
+
+    if _engine.dialect.name == "postgresql":
+        with _engine.connect() as conn:
+            conn.execute(
+                DDL(
+                    "ALTER TABLE chunks ADD COLUMN IF NOT EXISTS tsv tsvector "
+                    "GENERATED ALWAYS AS (to_tsvector('english', coalesce(content, ''))) STORED"
+                )
+            )
+            conn.execute(
+                DDL("CREATE INDEX IF NOT EXISTS ix_chunks_tsv ON chunks USING gin (tsv)")
+            )
+            conn.execute(
+                DDL(
+                    "CREATE INDEX IF NOT EXISTS ix_chunks_embedding "
+                    "ON chunks USING hnsw (embedding vector_cosine_ops)"
+                )
+            )
+            conn.commit()
 
     return _engine, _scoped_session
 

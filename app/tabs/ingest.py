@@ -15,9 +15,9 @@ def tab_ingest():
     st.markdown(f"**Retrieval mode**: {mode_badge}", unsafe_allow_html=True)
     st.divider()
 
-    mode = st.radio("Source type", ["Local Folder", "GitHub URL"], horizontal=True)
+    source_type = st.radio("Source type", ["Local Folder", "GitHub URL"], horizontal=True)
 
-    if mode == "GitHub URL":
+    if source_type == "GitHub URL":
         col1, col2 = st.columns([3, 1])
         with col1:
             url_value = st.text_input(
@@ -33,14 +33,9 @@ def tab_ingest():
                 st.error("Please enter a valid GitHub URL.")
                 return
 
-            progress_bar = st.progress(0, text="Downloading and ingesting...")
             status_text = st.empty()
 
-            files_processed = [0]
-
             def progress(current, chunk_added, filename):
-                files_processed[0] = current
-                progress_bar.progress(min(current / max(files_processed[0], 1), 1.0))
                 status_text.text(f"Processed {current} files, last: {filename}")
 
             try:
@@ -51,7 +46,6 @@ def tab_ingest():
                     branch=branch_value if branch_value else None,
                     progress_callback=progress,
                 )
-                progress_bar.progress(1.0)
                 status_text.empty()
                 st.success(
                     f"Ingested **{repo.name}** from GitHub\n\n"
@@ -60,7 +54,6 @@ def tab_ingest():
                     f"- **Source**: {repo.source_url}"
                 )
             except Exception as e:
-                progress_bar.empty()
                 status_text.empty()
                 st.error(f"GitHub ingest failed: {e}")
 
@@ -84,14 +77,9 @@ def tab_ingest():
             st.error(f"Directory not found: {path_value}")
             return
 
-        progress_bar = st.progress(0, text="Starting ingest...")
         status_text = st.empty()
 
-        files_processed = [0]
-
         def progress(current, chunk_added, filename):
-            files_processed[0] = current
-            progress_bar.progress(min(current / max(files_processed[0], 1), 1.0))
             status_text.text(f"Processed {current} files, last: {filename}")
 
         try:
@@ -100,7 +88,6 @@ def tab_ingest():
                 root_dir=str(root),
                 progress_callback=progress,
             )
-            progress_bar.progress(1.0)
             status_text.empty()
             st.success(
                 f"Ingested **{repo.name}**\n\n"

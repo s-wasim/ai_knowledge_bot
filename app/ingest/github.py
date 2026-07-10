@@ -61,23 +61,23 @@ def _download_zip(owner: str, repo: str, branch: str) -> bytes:
         return response.content
 
 
-def _extract_zip(zip_content: bytes) -> str:
-    """Extract zip content to a temp directory and return the path."""
-    temp_dir = tempfile.mkdtemp(prefix="gh_ingest_")
+def _extract_zip(zip_content: bytes) -> tuple[str, str]:
+    """Extract zip content to a temp directory and return (content_dir, top_temp_dir)."""
+    top_temp_dir = tempfile.mkdtemp(prefix="gh_ingest_")
     with zipfile.ZipFile(BytesIO(zip_content)) as zf:
-        zf.extractall(temp_dir)
+        zf.extractall(top_temp_dir)
 
     content_dir = None
-    for d in os.listdir(temp_dir):
-        full_path = os.path.join(temp_dir, d)
+    for d in os.listdir(top_temp_dir):
+        full_path = os.path.join(top_temp_dir, d)
         if os.path.isdir(full_path):
             content_dir = full_path
             break
 
     if content_dir is None:
-        content_dir = temp_dir
+        content_dir = top_temp_dir
 
-    return content_dir
+    return content_dir, top_temp_dir
 
 
 def ingest_github_url(
@@ -96,7 +96,7 @@ def ingest_github_url(
 
     zip_content = _download_zip(owner, repo, effective_branch)
 
-    content_dir = _extract_zip(zip_content)
+    content_dir, top_temp_dir = _extract_zip(zip_content)
 
     try:
         source_url = f"https://github.com/{owner}/{repo}"
@@ -109,4 +109,4 @@ def ingest_github_url(
         )
         return repo_obj
     finally:
-        shutil.rmtree(os.path.dirname(content_dir), ignore_errors=True)
+        shutil.rmtree(top_temp_dir, ignore_errors=True)
