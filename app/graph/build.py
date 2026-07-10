@@ -6,17 +6,7 @@ from app.graph.state import RagState
 
 logger = logging.getLogger(__name__)
 
-_retriever = None
-
-
-def set_retriever(retriever):
-    global _retriever
-    _retriever = retriever
-
-
-def get_retriever():
-    return _retriever
-
+from app.graph.retriever_holder import set_retriever, get_retriever
 
 from app.graph.nodes.grade import grade_chunks
 from app.graph.nodes.retrieve import retrieve

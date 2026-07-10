@@ -1,4 +1,4 @@
-from app.graph.build import get_retriever
+from app.graph.retriever_holder import get_retriever
 from app.graph.state import RagState
 
 

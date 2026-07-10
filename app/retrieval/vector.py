@@ -28,7 +28,7 @@ class VectorRetriever:
                 text(
                     """
                     SELECT path, start_line, end_line, content,
-                           1 - (embedding <=> :query_embedding) AS score
+                           1 - (embedding <=> :query_embedding::vector) AS score
                     FROM chunks
                     WHERE repo_id = :repo_id
                       AND embedding IS NOT NULL
@@ -38,7 +38,7 @@ class VectorRetriever:
                 ),
                 {
                     "repo_id": repo_id,
-                    "query_embedding": str(query_embedding),
+                    "query_embedding": "[" + ",".join(str(v) for v in query_embedding) + "]",
                     "k": k,
                 },
             ).fetchall()
