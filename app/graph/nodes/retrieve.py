@@ -1,9 +1,10 @@
-from app.graph.retriever_holder import get_retriever
+from langchain_core.runnables import RunnableConfig
+
 from app.graph.state import RagState
 
 
-def retrieve(state: RagState) -> dict:
-    retriever = get_retriever()
+def retrieve(state: RagState, config: RunnableConfig | None = None) -> dict:
+    retriever = ((config or {}).get("configurable") or {}).get("retriever")
     if retriever is None:
         return {"retrieved": []}
 

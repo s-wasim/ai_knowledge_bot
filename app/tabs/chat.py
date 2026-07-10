@@ -1,8 +1,9 @@
 import streamlit as st
 
 from app.db import get_session, Repo
-from app.graph.build import build_rag_graph, set_retriever
+from app.graph.build import build_rag_graph
 from app.graph.state import RagState
+from app.highlight import highlight_chunk, highlight_style
 from app.retrieval.base import ChunkData
 from app.retrieval.factory import create_retriever, get_mode_display
 
@@ -20,11 +21,12 @@ def tab_chat():
     init_session()
 
     st.markdown("### 💬 Chat with your codebase")
+    st.markdown(highlight_style(), unsafe_allow_html=True)
 
     # Initialize retriever once
     if not st.session_state.get("retriever_initialized", False):
         _retriever, _mode = create_retriever(get_session)
-        set_retriever(_retriever)
+        st.session_state.retriever = _retriever
         st.session_state.retriever_initialized = True
         st.session_state._retrieval_mode = _mode
 
@@ -103,34 +105,62 @@ def tab_chat():
             repo_id=repo_id,
         )
 
-        # Run graph
+        # Run graph, streaming tokens from the generate_answer node as they arrive
         with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                try:
-                    result = st.session_state.graph.invoke(state)
-                    answer = result.get("answer", "No answer generated.")
-                    citations = result.get("citations", [])
-                    graded = result.get("graded", [])
-                    retrieved = result.get("retrieved", [])
-
-                    st.markdown(answer)
-
-                    msg_data = {
-                        "role": "assistant",
-                        "content": answer,
-                        "citations": [(c.chunk.path, c.chunk.start_line, c.chunk.end_line, c.chunk.content) for c in citations],
-                        "graded": [(gc.chunk.path, gc.chunk.start_line, gc.chunk.end_line, gc.chunk.content, gc.keep, gc.reason, gc.chunk.score) for gc in graded],
-                        "retrieved": [(c.path, c.start_line, c.end_line, c.content, c.score) for c in retrieved],
+            try:
+                config = {
+                    "configurable": {
+                        "retriever": st.session_state.retriever,
+                        "get_session": get_session,
                     }
-                    st.session_state.messages.append(msg_data)
-                    _show_citations(msg_data)
-                    _show_graded_chunks(msg_data)
+                }
+                final_state = _run_graph_streamed(state, config)
 
-                except Exception as e:
-                    st.error(f"Error: {e}")
-                    st.session_state.messages.append({"role": "assistant", "content": f"Sorry, an error occurred: {e}"})
+                answer = final_state.get("answer", "No answer generated.")
+                citations = final_state.get("citations", [])
+                graded = final_state.get("graded", [])
+                retrieved = final_state.get("retrieved", [])
+
+                msg_data = {
+                    "role": "assistant",
+                    "content": answer,
+                    "citations": [(c.chunk.path, c.chunk.start_line, c.chunk.end_line, c.chunk.content) for c in citations],
+                    "graded": [(gc.chunk.path, gc.chunk.start_line, gc.chunk.end_line, gc.chunk.content, gc.keep, gc.reason, gc.chunk.score) for gc in graded],
+                    "retrieved": [(c.path, c.start_line, c.end_line, c.content, c.score) for c in retrieved],
+                }
+                st.session_state.messages.append(msg_data)
+                _show_citations(msg_data)
+                _show_graded_chunks(msg_data)
+            except Exception as e:
+                st.error(f"Error: {e}")
+                st.session_state.messages.append({"role": "assistant", "content": f"Sorry, an error occurred: {e}"})
 
         st.rerun()
+
+
+def _run_graph_streamed(state: RagState, config: dict) -> dict:
+    """Invoke the graph, streaming generate_answer's tokens to the UI live and
+    returning the final aggregated state once the graph completes."""
+    final_state: dict = {}
+
+    def _tokens():
+        yielded_any = False
+        for mode, payload in st.session_state.graph.stream(
+            state, config=config, stream_mode=["messages", "values"]
+        ):
+            if mode == "messages":
+                message_chunk, metadata = payload
+                if metadata.get("langgraph_node") == "generate_answer" and message_chunk.content:
+                    yielded_any = True
+                    yield message_chunk.content
+            else:
+                final_state.update(payload)
+        if not yielded_any:
+            # answer_not_found (or an empty answer) never streams tokens.
+            yield final_state.get("answer", "No answer generated.")
+
+    st.write_stream(_tokens())
+    return final_state
 
 
 def _show_citations(msg):
@@ -140,7 +170,7 @@ def _show_citations(msg):
         st.markdown("**Sources:**")
         for i, (path, start, end, content) in enumerate(citations, 1):
             with st.expander(f"[{i}] {path}:{start}-{end}"):
-                st.code(content, line_numbers=True, language="python")
+                st.markdown(highlight_chunk(path, content, start), unsafe_allow_html=True)
 
 
 def _show_graded_chunks(msg):
@@ -156,4 +186,4 @@ def _show_graded_chunks(msg):
                 st.markdown(f"{icon} **{path}:{start_line}-{end_line}** (score: {score:.3f})")
                 st.caption(f"Grade: {reason}")
                 with st.expander("View source"):
-                    st.code(content, line_numbers=True)
+                    st.markdown(highlight_chunk(path, content, start_line), unsafe_allow_html=True)

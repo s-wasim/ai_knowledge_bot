@@ -2,12 +2,14 @@ import streamlit as st
 from sqlalchemy import func
 
 from app.db import get_session, Repo, Chunk
+from app.highlight import highlight_chunk, highlight_style
 from app.ingest.embedder import is_voyage_available
 from app.retrieval.factory import get_mode_display
 
 
 def tab_browser():
     st.markdown("### 🗂 Index Browser")
+    st.markdown(highlight_style(), unsafe_allow_html=True)
 
     mode = "vector" if is_voyage_available() else "fts"
     mode_badge = f'<span style="background:#f0f2f6;padding:2px 10px;border-radius:10px;font-size:0.8em">{get_mode_display(mode)}</span>'
@@ -66,7 +68,10 @@ def tab_browser():
 
             for chunk in chunk_query:
                 st.markdown(f"**Lines {chunk.start_line}-{chunk.end_line}**")
-                st.code(chunk.content, line_numbers=True, language="python")
+                st.markdown(
+                    highlight_chunk(chunk.path, chunk.content, chunk.start_line),
+                    unsafe_allow_html=True,
+                )
                 st.divider()
 
     session.close()

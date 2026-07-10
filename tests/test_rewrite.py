@@ -50,13 +50,11 @@ def test_rewrite_no_history(mock_get_llm):
     mock_get_llm.assert_not_called()
 
 
-@patch("app.graph.nodes.retrieve.get_retriever")
-def test_retrieve_node(mock_get_retriever):
+def test_retrieve_node():
     mock_retriever = MagicMock()
     mock_retriever.search.return_value = [
         ChunkData(path="db.py", start_line=1, end_line=10, content="...", score=0.9)
     ]
-    mock_get_retriever.return_value = mock_retriever
 
     state = RagState(
         question="test",
@@ -72,9 +70,29 @@ def test_retrieve_node(mock_get_retriever):
 
     from app.graph.nodes.retrieve import retrieve
 
-    result = retrieve(state)
+    config = {"configurable": {"retriever": mock_retriever}}
+    result = retrieve(state, config)
     assert len(result["retrieved"]) == 1
     assert result["retrieved"][0].path == "db.py"
     mock_retriever.search.assert_called_once_with(
         repo_id=1, query="database connection", k=8
     )
+
+
+def test_retrieve_node_missing_retriever_in_config():
+    state = RagState(
+        question="test",
+        chat_history=[],
+        rewritten_query="database connection",
+        retrieved=[],
+        graded=[],
+        answer=None,
+        citations=[],
+        mode="fts",
+        repo_id=1,
+    )
+
+    from app.graph.nodes.retrieve import retrieve
+
+    assert retrieve(state, {}) == {"retrieved": []}
+    assert retrieve(state, None) == {"retrieved": []}

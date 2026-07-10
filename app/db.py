@@ -73,6 +73,11 @@ def init_db(retries=10, delay=3):
     _session_factory = sessionmaker(bind=_engine)
     _scoped_session = scoped_session(_session_factory)
 
+    if _engine.dialect.name == "postgresql":
+        with _engine.connect() as conn:
+            conn.execute(DDL("CREATE EXTENSION IF NOT EXISTS vector"))
+            conn.commit()
+
     Base.metadata.create_all(_engine)
 
     if _engine.dialect.name == "postgresql":

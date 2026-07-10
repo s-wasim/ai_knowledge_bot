@@ -9,6 +9,7 @@ services:
     env_file: .env
     volumes:
       - ./repos:/app/repos
+      - ./fixtures:/app/fixtures:ro
     networks:
       - kb-network
 

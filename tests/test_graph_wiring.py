@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.graph.build import build_rag_graph, set_retriever
+from app.graph.build import build_rag_graph
 from app.graph.state import GradedChunk, RagState
 from app.retrieval.base import ChunkData
 
@@ -63,7 +63,6 @@ class TestGraphInvocation:
                 path="a.py", start_line=1, end_line=3, content="x", score=0.9
             )
         ]
-        set_retriever(mock_retriever)
 
         graph = build_rag_graph()
 
@@ -77,7 +76,8 @@ class TestGraphInvocation:
                 "answer": None,
                 "citations": [],
                 "mode": "vector",
-            }
+            },
+            config={"configurable": {"retriever": mock_retriever}},
         )
 
         assert result["rewritten_query"] == "what is x?"
@@ -85,7 +85,6 @@ class TestGraphInvocation:
     def test_graph_invokes_not_found_path(self):
         mock_retriever = MagicMock()
         mock_retriever.search.return_value = []
-        set_retriever(mock_retriever)
 
         graph = build_rag_graph()
 
@@ -102,7 +101,60 @@ class TestGraphInvocation:
                 "answer": None,
                 "citations": [],
                 "mode": "vector",
-            }
+            },
+            config={"configurable": {"retriever": mock_retriever}},
         )
 
         assert result["rewritten_query"] == "what is x?"
+
+    @patch("app.graph.nodes.grade.get_llm")
+    def test_retriever_from_config_is_used(self, mock_get_llm):
+        """Retriever must flow through LangGraph's config, not a global singleton."""
+        mock_retriever = MagicMock()
+        mock_retriever.search.return_value = [
+            ChunkData(path="a.py", start_line=1, end_line=3, content="x", score=0.9)
+        ]
+        mock_llm = MagicMock()
+        mock_llm.invoke.return_value.content = (
+            '{"grades": [{"index": 1, "keep": false, "reason": "irrelevant"}]}'
+        )
+        mock_get_llm.return_value = mock_llm
+
+        graph = build_rag_graph()
+
+        result = graph.invoke(
+            {
+                "question": "what is x?",
+                "chat_history": [],
+                "rewritten_query": None,
+                "retrieved": [],
+                "graded": [],
+                "answer": None,
+                "citations": [],
+                "mode": "vector",
+                "repo_id": 1,
+            },
+            config={"configurable": {"retriever": mock_retriever}},
+        )
+
+        mock_retriever.search.assert_called_once()
+        assert len(result["retrieved"]) == 1
+
+    def test_missing_retriever_in_config_returns_empty(self):
+        graph = build_rag_graph()
+
+        result = graph.invoke(
+            {
+                "question": "what is x?",
+                "chat_history": [],
+                "rewritten_query": None,
+                "retrieved": [],
+                "graded": [],
+                "answer": None,
+                "citations": [],
+                "mode": "vector",
+                "repo_id": 1,
+            }
+        )
+
+        assert result["retrieved"] == []

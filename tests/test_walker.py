@@ -50,9 +50,19 @@ def test_venv_excluded():
 
 
 def test_non_utf8_skipped():
+    """Non-allowlisted extension (.bin) is excluded before reaching the decode step."""
     paths = {p for p, _ in walk_directory(FIXTURE_DIR)}
     non_utf8 = FIXTURE_DIR / "non_utf8_file.bin"
     assert non_utf8 not in paths
+
+
+def test_non_utf8_allowlisted_extension_skipped_without_raising(caplog):
+    """A file with an allowlisted extension (.py) but invalid UTF-8 bytes must be
+    tolerated: skipped with a logged warning, not raised (FR-3)."""
+    paths = {p for p, _ in walk_directory(FIXTURE_DIR)}
+    bad_encoding = FIXTURE_DIR / "bad_encoding.py"
+    assert bad_encoding not in paths
+    assert any("bad_encoding.py" in message for message in caplog.messages)
 
 
 def test_custom_allowlist():

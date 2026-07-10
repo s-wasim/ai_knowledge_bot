@@ -3,7 +3,7 @@ import re
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.graph.state import RagState, Citation
-from app.llm import get_llm
+from app.llm import get_llm_streaming
 
 
 def _build_answer_prompt(state: RagState) -> tuple[list, list]:
@@ -77,9 +77,8 @@ def generate_answer(state: RagState) -> dict:
     if not kept_chunks:
         return {"answer": "I couldn't find any relevant code chunks to answer your question.", "citations": []}
 
-    llm = get_llm()
-    response = llm.invoke(messages)
-    raw_answer = response.content.strip()
+    llm = get_llm_streaming()
+    raw_answer = "".join(chunk.content for chunk in llm.stream(messages)).strip()
 
     cleaned_answer, citations = _postprocess_answer(raw_answer, kept_chunks)
 
