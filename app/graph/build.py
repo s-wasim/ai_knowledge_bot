@@ -21,16 +21,8 @@ def get_retriever():
 from app.graph.nodes.grade import grade_chunks
 from app.graph.nodes.retrieve import retrieve
 from app.graph.nodes.rewrite import rewrite_query
-
-
-def answer_not_found(state: RagState) -> dict:
-    logger.info("answer_not_found: stub — no-op")
-    return {}
-
-
-def generate_answer(state: RagState) -> dict:
-    logger.info("generate_answer: stub — no-op")
-    return {}
+from app.graph.nodes.answer import generate_answer
+from app.graph.nodes.not_found import answer_not_found
 
 
 def build_rag_graph():
