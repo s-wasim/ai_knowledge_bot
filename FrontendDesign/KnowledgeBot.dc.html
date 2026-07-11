@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  window.__resources = {
+    "https://unpkg.com/react@18.3.1/umd/react.production.min.js": "./vendor/react.production.min.js",
+    "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js": "./vendor/react-dom.production.min.js",
+    "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js": "./vendor/babel.min.js"
+  };
+</script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    ::selection { background: rgba(96,165,250,0.35); }
+    @keyframes dashIn { from { stroke-dashoffset: 62; } to { stroke-dashoffset: 0; } }
+    @keyframes relayPulse { 0% { filter: brightness(1); } 50% { filter: brightness(1.7); } 100% { filter: brightness(1); } }
+    @keyframes caretBlink { 0%, 45% { opacity: 1; } 50%, 95% { opacity: 0; } 100% { opacity: 1; } }
+    @keyframes glintSweep { from { transform: translateX(-140%) skewX(-18deg); } to { transform: translateX(340%) skewX(-18deg); } }
+    @keyframes floatGlow1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(40px,-30px); } }
+    @keyframes floatGlow2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-50px,25px); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes shimmerRow { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    @keyframes relayPulseSlow { 0%,100% { opacity: 0.25; } 50% { opacity: 0.5; } }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+    }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: rgba(96,165,250,0.25); border-radius: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+  </style>
+</helmet>
+
+<div style="{{ styles.appRoot }}">
+
+  <!-- ================= SPLASH ================= -->
+  <sc-if value="{{ !state_splashDone }}" hint-placeholder-val="{{ true }}">
+    <div style="{{ styles.splash }}">
+      <svg width="88" height="88" viewBox="0 0 64 64" fill="none">
+        <rect width="64" height="64" rx="14" fill="{{ t.tileBg }}" stroke="{{ t.tileBrd }}" stroke-width="1"></rect>
+        <path d="M8 16 L19 32 L8 48" stroke="#1e40af" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="62" style="animation: dashIn 0.55s ease-out 0ms forwards"></path>
+        <path d="M26 16 L37 32 L26 48" stroke="#3b82f6" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="62" style="animation: dashIn 0.55s ease-out 160ms forwards"></path>
+        <path d="M44 16 L55 32 L44 48" stroke="#60a5fa" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="62" style="animation: dashIn 0.55s ease-out 320ms forwards"></path>
+      </svg>
+    </div>
+  </sc-if>
+
+  <!-- ================= BACKDROP GLOWS ================= -->
+  <div style="{{ styles.glow1 }}"></div>
+  <div style="{{ styles.glow2 }}"></div>
+
+  <div style="{{ styles.appInner }}">
+
+    <!-- ================= TOP BAR ================= -->
+    <div style="{{ styles.topBar }}">
+      <div style="{{ styles.bannerWrap }}" onMouseEnter="{{ onBannerHover }}">
+        <svg width="164" height="52" viewBox="0 0 180 56" fill="none">
+          <rect width="180" height="56" rx="8" fill="{{ t.tileBg }}"></rect>
+          <path d="M18 14 L29 28 L18 42" stroke="#1e40af" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" style-hover="animation: relayPulse 0.6s ease 0ms"></path>
+          <path d="M33 14 L44 28 L33 42" stroke="#3b82f6" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" style-hover="animation: relayPulse 0.6s ease 120ms"></path>
+          <path d="M48 14 L59 28 L48 42" stroke="#60a5fa" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" style-hover="animation: relayPulse 0.6s ease 240ms"></path>
+          <text x="72" y="35" font-family="Inter, sans-serif" font-size="19" font-weight="600" letter-spacing="-0.19">
+            <tspan fill="{{ t.textHi }}">VeloRel</tspan><tspan fill="#3b82f6">AI</tspan>
+          </text>
+        </svg>
+      </div>
+
+      <div style="{{ styles.topBarRight }}">
+        <div style="{{ styles.modeBadge }}">
+          <span style="{{ styles.modeDot }}"></span>
+          <span>{{ modeDisplay }}</span>
+        </div>
+
+        <div style="{{ styles.themeToggle }}" onClick="{{ toggleTheme }}" role="button" tabIndex="0" aria-label="Toggle theme">
+          <sc-if value="{{ isDark }}" hint-placeholder-val="{{ true }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="{{ styles.themeIcon }}"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" fill="currentColor"></path></svg>
+          </sc-if>
+          <sc-if value="{{ !isDark }}" hint-placeholder-val="{{ false }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="{{ styles.themeIcon }}"><circle cx="12" cy="12" r="5" fill="currentColor"></circle><path d="M12 1v3M12 20v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1 12h3M20 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>
+          </sc-if>
+          <span style="{{ styles.themeToggleLabel }}">{{ themeLabel }}</span>
+        </div>
+
+        <div style="{{ styles.healthDot }}" title="{{ healthTitle }}"></div>
+      </div>
+    </div>
+
+    <!-- ================= DB BANNER ================= -->
+    <sc-if value="{{ state_dbBannerVisible }}" hint-placeholder-val="{{ false }}">
+      <div style="{{ styles.dbBanner }}">⚠ {{ dbBannerText }}</div>
+    </sc-if>
+
+    <!-- ================= BODY: RAIL + PANEL ================= -->
+    <div style="{{ styles.body }}">
+
+      <!-- NAV RAIL -->
+      <div style="{{ styles.rail }}">
+        <div style="{{ styles.railNavGroup }}">
+          <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="3">
+            <div style="{{ item.rowStyle }}" onClick="{{ item.onClick }}" role="button" tabIndex="0">
+              <div style="{{ item.barStyle }}"></div>
+              <span style="{{ item.iconStyle }}" dangerouslySetInnerHTML="{{ item.iconHtml }}"></span>
+              <span style="{{ item.labelStyle }}">{{ item.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="{{ styles.railDivider }}"></div>
+
+        <div style="{{ styles.quickAskGroup }}">
+          <div style="{{ styles.quickAskHeading }}">Quick ask</div>
+          <sc-for list="{{ quickAsks }}" as="qa" hint-placeholder-count="5">
+            <div style="{{ qa.chipStyle }}" onClick="{{ qa.onClick }}" role="button" tabIndex="0">{{ qa.text }}</div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- ACTIVE PANEL -->
+      <div style="{{ styles.panelViewport }}">
+        <div style="{{ styles.panelSlide }}">
+
+          <sc-if value="{{ isIngestPanel }}" hint-placeholder-val="{{ true }}">
+            <div style="{{ styles.panelInner }}" data-screen-label="Ingest">
+              <div style="{{ styles.panelModeBadge }}"><span style="{{ styles.modeDot }}"></span>{{ modeDisplay }}</div>
+              <div style="{{ styles.panelTitle }}">Ingest a repository</div>
+              <div style="{{ styles.panelSubtitle }}">Bring a codebase in from a local folder or a public GitHub URL.</div>
+
+              <div style="{{ ingest.formWrap }}">
+                <div style="{{ ingest.segWrap }}">
+                  <div style="{{ ingest.segLocalStyle }}" onClick="{{ ingest.selectLocal }}">Local Folder</div>
+                  <div style="{{ ingest.segGithubStyle }}" onClick="{{ ingest.selectGithub }}">GitHub URL</div>
+                </div>
+
+                <div style="{{ ingest.fieldsViewport }}">
+                  <div style="{{ ingest.localFieldsStyle }}">
+                    <label style="{{ ingest.labelStyle }}">Repository path</label>
+                    <input style="{{ ingest.inputStyle }}" value="{{ ingest.localPath }}" onChange="{{ ingest.onLocalPathChange }}" spellCheck="false" aria-label="Repository path"></input>
+                    <label style="{{ ingest.labelStyle }}">Repo name</label>
+                    <input style="{{ ingest.inputStyle }}" value="{{ ingest.localName }}" onChange="{{ ingest.onLocalNameChange }}" spellCheck="false" aria-label="Repo name"></input>
+                  </div>
+                  <div style="{{ ingest.githubFieldsStyle }}">
+                    <label style="{{ ingest.labelStyle }}">GitHub URL</label>
+                    <input style="{{ ingest.inputStyle }}" value="{{ ingest.githubUrl }}" onChange="{{ ingest.onGithubUrlChange }}" placeholder="https://github.com/owner/repo" spellCheck="false" aria-label="GitHub URL"></input>
+                    <label style="{{ ingest.labelStyle }}">Branch (optional)</label>
+                    <input style="{{ ingest.inputStyle }}" value="{{ ingest.githubBranch }}" onChange="{{ ingest.onGithubBranchChange }}" placeholder="main" spellCheck="false" aria-label="Branch"></input>
+                  </div>
+                </div>
+
+                <sc-if value="{{ ingest.hasError }}" hint-placeholder-val="{{ false }}">
+                  <div style="{{ ingest.errorBanner }}">⚠ {{ ingest.errorText }}</div>
+                </sc-if>
+
+                <div>
+                  <div style="{{ ingest.allowlistHeader }}" onClick="{{ ingest.toggleAllowlist }}" role="button" tabIndex="0">
+                    <span style="{{ ingest.allowlistChevron }}">▸</span>
+                    <span>Extension allowlist</span>
+                  </div>
+                  <sc-if value="{{ ingest.allowlistOpen }}" hint-placeholder-val="{{ false }}">
+                    <div style="{{ ingest.allowlistBody }}">
+                      <div style="{{ ingest.allowlistMono }}">{{ ingest.allowlistText }}</div>
+                      <div style="{{ ingest.allowlistCaption }}">Changes take effect on next ingest. Edit DEFAULT_ALLOWLIST in app/ingest/walker.py.</div>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+
+              <sc-if value="{{ ingest.showChevrons }}" hint-placeholder-val="{{ false }}">
+                <div style="{{ ingest.chevronRow }}">
+                  <svg width="120" height="44" viewBox="0 0 120 44" fill="none">
+                    <path d="M10 8 L28 22 L10 36" stroke="{{ ingest.chevronStroke0 }}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" style="{{ ingest.chevronStyle0 }}"></path>
+                    <path d="M46 8 L64 22 L46 36" stroke="{{ ingest.chevronStroke1 }}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" style="{{ ingest.chevronStyle1 }}"></path>
+                    <path d="M82 8 L100 22 L82 36" stroke="{{ ingest.chevronStroke2 }}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" style="{{ ingest.chevronStyle2 }}"></path>
+                  </svg>
+                </div>
+              </sc-if>
+
+              <div style="{{ ingest.barShell }}" onClick="{{ ingest.onBarClick }}" role="button" tabIndex="0">
+                <div style="{{ ingest.barFill }}"></div>
+                <span style="{{ ingest.barLabel }}">{{ ingest.barLabelText }}</span>
+              </div>
+
+              <sc-if value="{{ ingest.showTicker }}" hint-placeholder-val="{{ false }}">
+                <div style="{{ ingest.tickerRow }}" aria-live="polite">
+                  <span style="{{ ingest.tickerFile }}">{{ ingest.progressFilename }}</span>
+                  <span style="{{ ingest.tickerCount }}">{{ ingest.countLabel }}</span>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ ingest.showSuccess }}" hint-placeholder-val="{{ false }}">
+                <div style="{{ ingest.successCard }}">
+                  <div style="{{ ingest.successTitle }}">{{ ingest.resultName }}</div>
+                  <div style="{{ ingest.statsRow }}">
+                    <div style="{{ ingest.statTile }}"><div style="{{ ingest.statValue }}">{{ ingest.statFilesLabel }}</div><div style="{{ ingest.statCaption }}">Files</div></div>
+                    <div style="{{ ingest.statTile }}"><div style="{{ ingest.statValue }}">{{ ingest.statChunksLabel }}</div><div style="{{ ingest.statCaption }}">Chunks</div></div>
+                    <div style="{{ ingest.statTile }}"><div style="{{ ingest.statValue }}">{{ ingest.resultSource }}</div><div style="{{ ingest.statCaption }}">Source</div></div>
+                  </div>
+                  <div style="{{ ingest.successBtnRow }}">
+                    <div style="{{ ingest.askBtn }}" onClick="{{ ingest.onAskQuestions }}" role="button" tabIndex="0">Ask questions →</div>
+                    <div style="{{ ingest.anotherBtn }}" onClick="{{ ingest.onAnother }}" role="button" tabIndex="0">Ingest another</div>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isChatPanel }}" hint-placeholder-val="{{ false }}">
+            <div style="{{ styles.chatPanelInner }}" data-screen-label="Chat">
+              <div style="{{ chatStyles.chatHeaderRow }}">
+                <div style="{{ styles.panelModeBadge }}"><span style="{{ styles.modeDot }}"></span>{{ modeDisplay }}</div>
+                <div style="{{ chatStyles.repoSelectorWrap }}">
+                  <div style="{{ chatStyles.repoTrigger }}" onClick="{{ chat.toggleDropdown }}" role="button" tabIndex="0">
+                    <span>{{ chat.selectedLabel }}</span>
+                    <span style="{{ chatStyles.repoCaret }}">▾</span>
+                  </div>
+                  <sc-if value="{{ chat.dropdownOpen }}" hint-placeholder-val="{{ false }}">
+                    <div style="{{ chatStyles.repoDropdown }}">
+                      <sc-for list="{{ chat.repoOptions }}" as="opt" hint-placeholder-count="2">
+                        <div style="{{ opt.rowStyle }}" onClick="{{ opt.onClick }}" role="button" tabIndex="0">{{ opt.label }}</div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+                <div style="{{ chatStyles.clearBtn }}" onClick="{{ chat.onClear }}" role="button" tabIndex="0">Clear history</div>
+              </div>
+
+              <sc-if value="{{ !chat.hasRepos }}" hint-placeholder-val="{{ false }}">
+                <div style="{{ chatStyles.emptyWrap }}">
+                  <span dangerouslySetInnerHTML="{{ chat.emptyIconHtml }}"></span>
+                  <div style="{{ chatStyles.emptyTitle }}">No repos ingested yet.</div>
+                  <div style="{{ chatStyles.goIngestBtn }}" onClick="{{ chat.goToIngest }}" role="button" tabIndex="0">Go to Ingest</div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ chat.hasRepos }}" hint-placeholder-val="{{ true }}">
+                <div style="{{ chatStyles.msgListWrap }}" ref="{{ chat.msgListRef }}" onScroll="{{ chat.onScroll }}" aria-live="polite">
+                  <sc-if value="{{ !chat.hasMessages }}" hint-placeholder-val="{{ false }}">
+                    <div style="{{ chatStyles.emptyWrap }}">
+                      <span dangerouslySetInnerHTML="{{ chat.emptyIconHtml }}"></span>
+                      <div style="{{ chatStyles.emptyTitle }}">Ask a question about this codebase to get started.</div>
+                    </div>
+                  </sc-if>
+
+                  <sc-for list="{{ chat.messages }}" as="msg" hint-placeholder-count="0">
+                    <sc-if value="{{ msg.isUser }}" hint-placeholder-val="{{ false }}">
+                      <div style="{{ chatStyles.userBubbleWrap }}">
+                        <div style="{{ chatStyles.userBubble }}">{{ msg.text }}</div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ msg.isError }}" hint-placeholder-val="{{ false }}">
+                      <div style="{{ chatStyles.errorCard }}">⚠ {{ msg.text }}</div>
+                    </sc-if>
+                    <sc-if value="{{ msg.isAssistant }}" hint-placeholder-val="{{ false }}">
+                      <div style="{{ chatStyles.assistantCard }}">
+                        <sc-if value="{{ msg.showStrip }}" hint-placeholder-val="{{ false }}">
+                          <div style="{{ chatStyles.topStrip }}"></div>
+                        </sc-if>
+                        <sc-if value="{{ msg.showTrack }}" hint-placeholder-val="{{ true }}">
+                          <div style="{{ chatStyles.pipelineTrack }}">
+                            <sc-for list="{{ msg.stagesRender }}" as="stage" hint-placeholder-count="4">
+                              <span style="{{ stage.nodeStyle }}"><span style="{{ stage.dotStyle }}"></span>{{ stage.label }}</span>
+                              <div style="{{ stage.connectorStyle }}"></div>
+                            </sc-for>
+                          </div>
+                        </sc-if>
+
+                        <div style="{{ chatStyles.answerBody }}" dangerouslySetInnerHTML="{{ msg.answerHtml }}"></div>
+                        <sc-if value="{{ msg.showCaret }}" hint-placeholder-val="{{ false }}">
+                          <span style="{{ chatStyles.caret }}"></span>
+                        </sc-if>
+
+                        <sc-if value="{{ msg.hasCitations }}" hint-placeholder-val="{{ false }}">
+                          <div style="{{ chatStyles.citationsRow }}">
+                            <span style="{{ chatStyles.citationsLabel }}">Sources:</span>
+                            <sc-for list="{{ msg.citationsChips }}" as="c" hint-placeholder-count="2">
+                              <span style="{{ c.chipStyle }}" onClick="{{ c.onClick }}" title="{{ c.tooltip }}" role="button" tabIndex="0">[{{ c.num }}]</span>
+                            </sc-for>
+                          </div>
+                          <sc-if value="{{ msg.openChunk }}" hint-placeholder-val="{{ false }}">
+                            <div style="{{ chatStyles.codeViewerWrap }}" key="{{ msg.openChunkKey }}">
+                              <div style="{{ chatStyles.codeViewerHeader }}">{{ msg.openChunk.path }}:{{ msg.openChunk.start_line }}-{{ msg.openChunk.end_line }}</div>
+                              <div style="{{ chatStyles.codeViewerBody }}" dangerouslySetInnerHTML="{{ msg.openChunkHtml }}"></div>
+                            </div>
+                          </sc-if>
+                        </sc-if>
+
+                        <sc-if value="{{ msg.hasGraded }}" hint-placeholder-val="{{ false }}">
+                          <div style="{{ chatStyles.gradedToggleRow }}" onClick="{{ msg.toggleChunks }}" role="button" tabIndex="0">
+                            <span style="{{ msg.chunksChevronStyle }}">▸</span>{{ msg.chunksLabel }}
+                          </div>
+                          <sc-if value="{{ msg.chunksOpen }}" hint-placeholder-val="{{ false }}">
+                            <div style="{{ chatStyles.gradedList }}">
+                              <sc-for list="{{ msg.gradedRows }}" as="g" hint-placeholder-count="4">
+                                <div style="{{ g.rowStyle }}">
+                                  <div style="{{ chatStyles.gradedRow }}">
+                                    <div style="{{ chatStyles.gradedTopLine }}">
+                                      <span style="{{ g.keepIconStyle }}">{{ g.keepIcon }}</span>
+                                      <span style="{{ chatStyles.gradedPath }}">{{ g.pathLabel }}</span>
+                                      <div style="{{ chatStyles.gradedMeterTrack }}"><div style="{{ chatStyles.gradedMeterFill }}"></div></div>
+                                      <span style="{{ chatStyles.gradedScore }}">{{ g.scoreLabel }}</span>
+                                    </div>
+                                    <div style="{{ chatStyles.gradedReason }}">{{ g.reason }}</div>
+                                    <div style="{{ chatStyles.gradedSourceBtn }}" onClick="{{ g.toggleSource }}" role="button" tabIndex="0">{{ g.sourceLabel }}</div>
+                                    <sc-if value="{{ g.sourceOpen }}" hint-placeholder-val="{{ false }}">
+                                      <div style="{{ chatStyles.codeViewerWrap }}">
+                                        <div style="{{ chatStyles.codeViewerBody }}" dangerouslySetInnerHTML="{{ g.codeHtml }}"></div>
+                                      </div>
+                                    </sc-if>
+                                  </div>
+                                </div>
+                              </sc-for>
+                            </div>
+                          </sc-if>
+                        </sc-if>
+                      </div>
+                    </sc-if>
+                  </sc-for>
+                </div>
+
+                <sc-if value="{{ chat.showNewTokensChip }}" hint-placeholder-val="{{ false }}">
+                  <div style="{{ chatStyles.newTokensChip }}" onClick="{{ chat.scrollToBottom }}" role="button" tabIndex="0">↓ New tokens</div>
+                </sc-if>
+
+                <div style="{{ chatStyles.inputBar }}">
+                  <textarea ref="{{ chat.textareaRef }}" style="{{ chat.textareaFullStyle }}" value="{{ chat.inputValue }}" onChange="{{ chat.onInputChange }}" onKeyDown="{{ chat.onInputKeyDown }}" placeholder="Ask a question about this codebase…" aria-label="Chat input"></textarea>
+                  <div style="{{ chatStyles.sendBtn }}" onClick="{{ chat.onSend }}" role="button" tabIndex="0" aria-label="Send">➤</div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isBrowserPanel }}" hint-placeholder-val="{{ false }}">
+            <div style="{{ styles.panelInner }}" data-screen-label="Browser">
+              <div style="{{ browserStyles.headerRow }}">
+                <div style="{{ styles.panelModeBadge }}"><span style="{{ styles.modeDot }}"></span>{{ modeDisplay }}</div>
+                <div style="{{ chatStyles.repoSelectorWrap }}">
+                  <div style="{{ chatStyles.repoTrigger }}" onClick="{{ browser.toggleDropdown }}" role="button" tabIndex="0">
+                    <span>{{ browser.selectedLabel }}</span>
+                    <span style="{{ chatStyles.repoCaret }}">▾</span>
+                  </div>
+                  <sc-if value="{{ browser.dropdownOpen }}" hint-placeholder-val="{{ false }}">
+                    <div style="{{ chatStyles.repoDropdown }}">
+                      <sc-for list="{{ browser.repoOptions }}" as="opt" hint-placeholder-count="2">
+                        <div style="{{ browserStyles.dropdownRow }}" onClick="{{ opt.onClick }}" role="button" tabIndex="0">{{ opt.label }}</div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+
+              <sc-if value="{{ !browser.hasRepos }}" hint-placeholder-val="{{ false }}">
+                <div style="{{ chatStyles.emptyWrap }}">
+                  <span dangerouslySetInnerHTML="{{ browser.emptyIconHtml }}"></span>
+                  <div style="{{ chatStyles.emptyTitle }}">No repos ingested yet.</div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ browser.hasRepos }}" hint-placeholder-val="{{ true }}">
+                <div style="{{ browserStyles.metricsRow }}">
+                  <div style="{{ browserStyles.metricTile }}"><div style="{{ browserStyles.metricValue }}">{{ browser.metricFiles }}</div><div style="{{ browserStyles.metricCaption }}">Files</div></div>
+                  <div style="{{ browserStyles.metricTile }}"><div style="{{ browserStyles.metricValue }}">{{ browser.metricChunks }}</div><div style="{{ browserStyles.metricCaption }}">Chunks</div></div>
+                  <div style="{{ browserStyles.metricTile }}"><div style="{{ browserStyles.metricValue }}">{{ browser.metricSource }}</div><div style="{{ browserStyles.metricCaption }}">Source</div></div>
+                </div>
+
+                <div style="{{ browserStyles.filterRow }}">
+                  <input style="{{ browserStyles.filterInput }}" value="{{ browser.keyword }}" onChange="{{ browser.onKeywordChange }}" placeholder="e.g. database, auth, config..." aria-label="Filter files"></input>
+                  <span style="{{ browserStyles.fileCount }}">{{ browser.fileCountLabel }}</span>
+                </div>
+
+                <sc-if value="{{ browser.noHits }}" hint-placeholder-val="{{ false }}">
+                  <div style="{{ chatStyles.emptyWrap }}">
+                    <div style="{{ chatStyles.emptyTitle }}">No files match the filter.</div>
+                  </div>
+                </sc-if>
+
+                <div style="{{ browserStyles.fileList }}">
+                  <sc-for list="{{ browser.fileRows }}" as="f" hint-placeholder-count="6">
+                    <div style="{{ browserStyles.fileRowOuter }}">
+                      <div style="{{ browserStyles.fileRow }}" onClick="{{ f.onClick }}" role="button" tabIndex="0">
+                        <div>
+                          <div style="{{ browserStyles.filePath }}">{{ f.path }}</div>
+                          <div style="{{ browserStyles.fileMeta }}">{{ f.chunkCount }} chunks · {{ f.lineRange }}</div>
+                        </div>
+                        <span style="{{ browserStyles.fileChevron }}">›</span>
+                      </div>
+                      <sc-if value="{{ f.isLoading }}" hint-placeholder-val="{{ false }}">
+                        <div style="{{ browserStyles.loadingRow }}">
+                          <svg width="52" height="20" viewBox="0 0 52 20" fill="none">
+                            <path d="M4 4 L12 10 L4 16" stroke="#1e40af" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: relayPulse 1.2s ease-in-out 0ms infinite"></path>
+                            <path d="M20 4 L28 10 L20 16" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: relayPulse 1.2s ease-in-out 150ms infinite"></path>
+                            <path d="M36 4 L44 10 L36 16" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: relayPulse 1.2s ease-in-out 300ms infinite"></path>
+                          </svg>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ f.isOpen }}" hint-placeholder-val="{{ false }}">
+                        <div style="{{ browserStyles.chunkList }}">
+                          <sc-for list="{{ f.chunks }}" as="ch" hint-placeholder-count="2">
+                            <div style="{{ browserStyles.chunkBlock }}">
+                              <div style="{{ browserStyles.chunkHeader }}">{{ ch.lineHeader }}</div>
+                              <div style="{{ browserStyles.chunkBody }}" dangerouslySetInnerHTML="{{ ch.html }}"></div>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+
+const THEMES = {
+  dark: {
+    bg: "#0f172a", surface: "#1e293b",
+    glassBg: "rgba(30,41,59,0.55)", glassBrd: "rgba(96,165,250,0.14)", glassBrdH: "rgba(96,165,250,0.30)",
+    insetBg: "rgba(15,23,42,0.50)", textHi: "#f1f5f9", textLo: "#94a3b8",
+    shadow: "0 8px 32px rgba(2,6,23,0.35)", glow1: "rgba(59,130,246,0.10)", glow2: "rgba(30,64,175,0.12)",
+    tileBg: "#1e293b", tileBrd: "#1e293b",
+  },
+  light: {
+    bg: "#f8fafc", surface: "#eff6ff",
+    glassBg: "rgba(239,246,255,0.60)", glassBrd: "rgba(59,130,246,0.18)", glassBrdH: "rgba(30,64,175,0.35)",
+    insetBg: "rgba(219,234,254,0.45)", textHi: "#0f172a", textLo: "#475569",
+    shadow: "0 8px 32px rgba(30,64,175,0.10)", glow1: "rgba(96,165,250,0.12)", glow2: "rgba(219,234,254,0.8)",
+    tileBg: "#eff6ff", tileBrd: "#dbeafe",
+  },
+};
+const RELAY_1 = "#1e40af", RELAY_2 = "#3b82f6", RELAY_3 = "#60a5fa";
+const RELAY_GRADIENT = "linear-gradient(90deg,#1e40af,#3b82f6,#60a5fa)";
+const PANEL_ORDER = ["ingest", "chat", "browser"];
+function basename(p) {
+  const trimmed = (p || "").replace(/\/+$/, "");
+  const parts = trimmed.split("/");
+  return parts[parts.length - 1] || "";
+}
+
+const ICON_PACKAGE = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M21 8l-9-5-9 5 9 5 9-5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path><path d="M3 8v8l9 5 9-5V8" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path><path d="M12 13v8" stroke="currentColor" stroke-width="1.8"></path></svg>`;
+const ICON_CHAT = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v12H8l-4 4V4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path></svg>`;
+const ICON_FOLDER = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 6a1 1 0 011-1h5l2 2h9a1 1 0 011 1v11a1 1 0 01-1 1H4a1 1 0 01-1-1V6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path></svg>`;
+
+const PIPELINE_STAGES = [
+  { key: "rewrite_query", label: "rewrite" },
+  { key: "retrieve", label: "retrieve" },
+  { key: "grade_chunks", label: "grade" },
+  { key: "generate_answer", label: "answer" },
+];
+const NODE_INDEX = { rewrite_query: 0, retrieve: 1, grade_chunks: 2, generate_answer: 3, answer_not_found: 3 };
+const QUICK_ASK_TEXTS = [
+  "Where is the database connection configured?",
+  "How does authentication work?",
+  "How do I change it to use MySQL instead?",
+  "How does the notification system work?",
+  "What environment variables does the application use?",
+];
+let _uid = 0;
+function nextId() { return "m" + (_uid++) + "_" + Date.now().toString(36); }
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+const CODE_KEYWORDS = ["const","let","var","function","return","import","from","export","default","class","extends","if","else","for","while","async","await","def","self","try","except","finally","with","as","yield","new","this","typeof","interface","type","void","null","undefined","true","false","None","True","False","and","or","not","in","is","raise"];
+const HIGHLIGHT_RE = new RegExp(
+  '(`(?:[^`\\\\]|\\\\.)*`|"(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\')' +
+  '|(#.*$)' +
+  '|(//.*$)' +
+  '|(@[\\w.]+)' +
+  '|\\b(' + CODE_KEYWORDS.join("|") + ')\\b',
+  "gm"
+);
+function highlightCode(code, c) {
+  const escaped = escapeHtml(code);
+  // Single pass over the ORIGINAL escaped text only — never re-scan text we've
+  // already wrapped in <span>, so inserted hex colors (e.g. #15803d) can't be
+  // mistaken for a comment marker on a later pass.
+  return escaped.replace(HIGHLIGHT_RE, (m, str, hashc, slashc, deco, kw) => {
+    if (str) return `<span style="color:${c.string}">${str}</span>`;
+    if (hashc) return `<span style="color:${c.comment};font-style:italic">${hashc}</span>`;
+    if (slashc) return `<span style="color:${c.comment};font-style:italic">${slashc}</span>`;
+    if (deco) return `<span style="color:${c.keyword}">${deco}</span>`;
+    if (kw) return `<span style="color:${c.keyword};font-weight:600">${kw}</span>`;
+    return m;
+  });
+}
+function buildCodeHtml(content, startLine, c) {
+  const lines = String(content || "").split("\n");
+  return lines.map((line, i) => {
+    const num = startLine + i;
+    const html = highlightCode(line, c) || "&nbsp;";
+    return `<div style="display:flex;gap:14px;padding:1px 0;"><span style="width:34px;flex-shrink:0;text-align:right;color:${c.lineNum};user-select:none;">${num}</span><span style="white-space:pre-wrap;word-break:break-word;">${html}</span></div>`;
+  }).join("");
+}
+function emptyIconHtml(isDark, size) {
+  const tileBg = isDark ? "#1e293b" : "#eff6ff";
+  const tileBrd = isDark ? "#1e293b" : "#dbeafe";
+  return `<svg width="${size}" height="${size}" viewBox="0 0 204 204" fill="none">
+    <rect x="2" y="2" width="200" height="200" rx="44" fill="${tileBg}" stroke="${tileBrd}" stroke-width="2"></rect>
+    <path d="M41 60 L71 102 L41 144" stroke="#1e40af" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" opacity="0.3" style="animation:relayPulseSlow 3s ease-in-out 0s infinite"></path>
+    <path d="M87 60 L117 102 L87 144" stroke="#3b82f6" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" opacity="0.3" style="animation:relayPulseSlow 3s ease-in-out 0.3s infinite"></path>
+    <path d="M133 60 L163 102 L133 144" stroke="#60a5fa" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" opacity="0.3" style="animation:relayPulseSlow 3s ease-in-out 0.6s infinite"></path>
+  </svg>`;
+}
+function formatDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function renderMarkdown(text) {
+  let t = escapeHtml(text || "");
+  t = t.replace(/`([^`]+)`/g, '<code style="background:rgba(96,165,250,0.16);padding:1px 5px;border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-size:0.9em;">$1</code>');
+  t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  const lines = t.split("\n");
+  let html = ""; let inList = false;
+  for (const line of lines) {
+    if (/^-\s+/.test(line)) {
+      if (!inList) { html += '<ul style="margin:6px 0 6px 18px;padding:0;">'; inList = true; }
+      html += `<li style="margin-bottom:4px;">${line.replace(/^-\s+/, "")}</li>`;
+    } else {
+      if (inList) { html += "</ul>"; inList = false; }
+      html = line.trim() === "" ? html + '<div style="height:8px"></div>' : html + `<div>${line}</div>`;
+    }
+  }
+  if (inList) html += "</ul>";
+  return html;
+}
+
+class Component extends DCLogic {
+  msgListRef = React.createRef();
+  textareaRef = React.createRef();
+
+  state = {
+    theme: "dark",
+    splashDone: false,
+    activePanel: "ingest",
+    panelDir: 1,
+    health: null,
+    dbBannerVisible: false,
+    repos: [],
+    newRepoId: null,
+    isMobile: false,
+
+    ingestMode: "local",
+    localPath: "./repos/my_repo",
+    localName: "my_repo",
+    localNameTouched: false,
+    githubUrl: "",
+    githubBranch: "",
+    allowlistOpen: false,
+    allowlist: [],
+    ingestPhase: "form",
+    progressCurrent: 0,
+    progressTotal: 20,
+    progressFilename: "",
+    ingestError: "",
+    ingestResult: null,
+    counters: { ingestCount: 0, statFiles: 0, statChunks: 0 },
+
+    chatRepoId: null,
+    chatInputPulse: false,
+    chatRepoDropdownOpen: false,
+    messages: [],
+    chatInput: "",
+    messagesClearing: false,
+    chatAtBottom: true,
+    showNewTokensChip: false,
+
+    browserRepoId: null,
+    browserRepoDropdownOpen: false,
+    browserMetrics: null,
+    browserFiles: [],
+    browserKeyword: "",
+    browserExpandedFiles: {},
+    browserLoadingFile: null,
+    browserLoading: false,
+  };
+
+  componentDidMount() {
+    if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+      this.setState({ theme: "light" });
+    }
+    setTimeout(() => this.setState({ splashDone: true }), 1000);
+    this.loadHealth();
+    this.loadRepos();
+    this.loadAllowlist();
+    this._onResize = () => this.setState({ isMobile: window.innerWidth <= 768 });
+    this._onResize();
+    window.addEventListener("resize", this._onResize);
+  }
+  componentWillUnmount() {
+    window.removeEventListener("resize", this._onResize);
+  }
+
+  async loadAllowlist() {
+    const mod = this._adapter || (await import("./src/api/adapter.js"));
+    this._adapter = mod;
+    const allowlist = await mod.getAllowlist();
+    this.setState({ allowlist });
+  }
+
+  async loadHealth() {
+    const mod = await import("./src/api/adapter.js");
+    this._adapter = mod;
+    const health = await mod.getHealth();
+    this.setState({ health, dbBannerVisible: !health.db_ok });
+  }
+
+  async loadRepos() {
+    const mod = this._adapter || (await import("./src/api/adapter.js"));
+    this._adapter = mod;
+    const repos = await mod.listRepos();
+    this.setState((s) => ({
+      repos,
+      chatRepoId: s.chatRepoId || (repos[0] && repos[0].id) || null,
+      browserRepoId: s.browserRepoId || (repos[0] && repos[0].id) || null,
+    }));
+    if (!this.state.browserMetrics && repos[0]) this.loadBrowse(repos[0].id, "");
+  }
+
+  toggleTheme = () => {
+    this.setState((s) => ({ theme: s.theme === "dark" ? "light" : "dark" }));
+  };
+
+  onBannerHover = () => {};
+
+  setIngestMode = (mode) => {
+    if (mode === this.state.ingestMode) return;
+    this.setState({ ingestMode: mode });
+  };
+  onLocalPathChange = (e) => {
+    const path = e.target.value;
+    this.setState((s) => {
+      const next = { localPath: path };
+      if (!s.localNameTouched) next.localName = basename(path);
+      return next;
+    });
+  };
+  onLocalNameChange = (e) => this.setState({ localName: e.target.value, localNameTouched: true });
+  onGithubUrlChange = (e) => this.setState({ githubUrl: e.target.value, ingestError: "" });
+  onGithubBranchChange = (e) => this.setState({ githubBranch: e.target.value });
+  toggleAllowlist = () => this.setState((s) => ({ allowlistOpen: !s.allowlistOpen }));
+
+  animateNumber = (key, target, duration = 700) => {
+    const start = this.state.counters[key] || 0;
+    const t0 = performance.now();
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const val = Math.round(start + (target - start) * eased);
+      this.setState((s) => ({ counters: { ...s.counters, [key]: val } }));
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+
+  submitIngest = () => {
+    if (this.state.ingestMode === "github") {
+      const url = this.state.githubUrl.trim();
+      if (!url || !/github\.com\/[^/]+\/[^/]+/.test(url)) {
+        this.setState({ ingestError: "Please enter a valid GitHub URL." });
+        return;
+      }
+    }
+    this.setState((s) => ({ ingestPhase: "progress", ingestError: "", progressCurrent: 0, counters: { ...s.counters, ingestCount: 0 } }));
+    const onProgress = ({ current, filename }) => {
+      this.setState({ progressCurrent: current, progressFilename: filename });
+      this.animateNumber("ingestCount", current, 220);
+    };
+    const onDone = (result) => {
+      this.setState((s) => ({ progressCurrent: s.progressTotal }));
+      this.animateNumber("ingestCount", this.state.progressTotal, 220);
+      setTimeout(() => {
+        this.setState({ ingestPhase: "success", ingestResult: result, newRepoId: result.id });
+        this.animateNumber("statFiles", result.file_count, 900);
+        this.animateNumber("statChunks", result.chunk_count, 900);
+        this.loadRepos();
+        setTimeout(() => this.setState({ newRepoId: null }), 2600);
+      }, 550);
+    };
+    const onError = (err) => {
+      this.setState({ ingestPhase: "erroring" });
+      setTimeout(() => this.setState({ ingestPhase: "form", ingestError: err.message }), 750);
+    };
+    if (this.state.ingestMode === "local") {
+      this._adapter.ingestLocal({ path: this.state.localPath, name: this.state.localName }, onProgress, onDone, onError);
+    } else {
+      this._adapter.ingestGithub({ url: this.state.githubUrl.trim(), branch: this.state.githubBranch.trim() || undefined }, onProgress, onDone, onError);
+    }
+  };
+
+  ingestAnother = () => {
+    this.setState((s) => ({
+      ingestPhase: "form", ingestResult: null, progressCurrent: 0, progressFilename: "",
+      counters: { ...s.counters, ingestCount: 0, statFiles: 0, statChunks: 0 },
+    }));
+  };
+
+  askQuestionsFromIngest = () => {
+    const repoId = this.state.ingestResult && this.state.ingestResult.id;
+    this.setState({ chatRepoId: repoId, chatInputPulse: true });
+    this.setPanel("chat");
+    setTimeout(() => this.setState({ chatInputPulse: false }), 1000);
+  };
+
+  // ---------------- Chat ----------------
+  toggleChatRepoDropdown = () => this.setState((s) => ({ chatRepoDropdownOpen: !s.chatRepoDropdownOpen }));
+  selectChatRepo = (id) => this.setState({ chatRepoId: id, chatRepoDropdownOpen: false });
+  onChatInputChange = (e) => this.setState({ chatInput: e.target.value });
+  onChatInputKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      this.sendMessage(this.state.chatInput);
+    }
+  };
+
+  updateMessage = (id, updater) => {
+    this.setState((s) => ({ messages: s.messages.map((m) => (m.id === id ? updater(m) : m)) }));
+  };
+
+  buildHistory() {
+    return this.state.messages
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .slice(-6)
+      .map((m) => ({ role: m.role, content: m.role === "user" ? m.content : m.streamText }));
+  }
+
+  sendMessage = (rawText) => {
+    const text = (rawText || "").trim();
+    if (!text || !this.state.chatRepoId) return;
+    const history = this.buildHistory();
+    const userMsg = { id: nextId(), role: "user", content: text };
+    const assistantId = nextId();
+    const assistantMsg = {
+      id: assistantId, role: "assistant", streamText: "", citations: [], graded: [], retrieved: [],
+      pipeline: { activeIndex: -1, notFound: false, collapsed: false }, done: false, openCitation: null, chunksOpen: false, gradedOpen: {},
+    };
+    this.setState((s) => ({ messages: [...s.messages, userMsg, assistantMsg], chatInput: "" }));
+    const repoId = this.state.chatRepoId;
+    this._adapter.chat({ repo_id: repoId, question: text, history }, {
+      onNode: ({ node }) => this.updateMessage(assistantId, (m) => ({ ...m, pipeline: { ...m.pipeline, activeIndex: NODE_INDEX[node], notFound: node === "answer_not_found" } })),
+      onToken: ({ text: tok }) => this.updateMessage(assistantId, (m) => ({ ...m, streamText: m.streamText + tok, pipeline: { ...m.pipeline, collapsed: true } })),
+      onFinal: (final) => this.updateMessage(assistantId, (m) => ({ ...m, streamText: final.answer, citations: final.citations, graded: final.graded, retrieved: final.retrieved, done: true })),
+      onError: (err) => this.updateMessage(assistantId, (m) => ({ ...m, role: "error", content: `Sorry, an error occurred: ${err.message}`, done: true })),
+    });
+  };
+
+  useQuickAsk = (text) => {
+    this.setState({ chatInputPulse: true });
+    this.setPanel("chat");
+    setTimeout(() => {
+      this.sendMessage(text);
+      this.setState({ chatInputPulse: false });
+    }, 320);
+  };
+
+  clearChatHistory = () => {
+    if (this.state.messages.length === 0) return;
+    this.setState({ messagesClearing: true });
+    const dur = 300 + this.state.messages.length * 30;
+    setTimeout(() => this.setState({ messages: [], messagesClearing: false }), dur);
+  };
+
+  toggleCitation = (msgId, idx) => this.updateMessage(msgId, (m) => ({ ...m, openCitation: m.openCitation === idx ? null : idx }));
+  toggleChunksOpen = (msgId) => this.updateMessage(msgId, (m) => ({ ...m, chunksOpen: !m.chunksOpen }));
+  toggleGradedSource = (msgId, idx) => this.updateMessage(msgId, (m) => ({ ...m, gradedOpen: { ...m.gradedOpen, [idx]: !m.gradedOpen[idx] } }));
+  goToIngestFromChat = () => this.setPanel("ingest");
+  onChatScroll = (e) => {
+    const el = e.target;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 48;
+    this.setState({ chatAtBottom: atBottom, showNewTokensChip: atBottom ? false : this.state.showNewTokensChip });
+  };
+  scrollToBottomChip = () => {
+    if (this.msgListRef.current) this.msgListRef.current.scrollTop = this.msgListRef.current.scrollHeight;
+    this.setState({ chatAtBottom: true, showNewTokensChip: false });
+  };
+  componentDidUpdate() {
+    const messagesChanged = this._prevMessages !== this.state.messages;
+    const pulseStarted = !this._prevChatInputPulse && this.state.chatInputPulse;
+    this._prevMessages = this.state.messages;
+    this._prevChatInputPulse = this.state.chatInputPulse;
+    if (messagesChanged && this.msgListRef.current) {
+      if (this.state.chatAtBottom) {
+        this.msgListRef.current.scrollTop = this.msgListRef.current.scrollHeight;
+      } else if (!this.state.showNewTokensChip) {
+        this.setState({ showNewTokensChip: true });
+      }
+    }
+    if (pulseStarted && this.textareaRef.current) {
+      this.textareaRef.current.focus();
+    }
+  }
+
+  // ---------------- Index Browser ----------------
+  toggleBrowserRepoDropdown = () => this.setState((s) => ({ browserRepoDropdownOpen: !s.browserRepoDropdownOpen }));
+  selectBrowserRepo = (id) => {
+    this.setState({ browserRepoId: id, browserRepoDropdownOpen: false, browserExpandedFiles: {}, browserKeyword: "" });
+    this.loadBrowse(id, "");
+  };
+  onBrowserKeywordChange = (e) => {
+    const kw = e.target.value;
+    this.setState({ browserKeyword: kw });
+    clearTimeout(this._kwTimer);
+    this._kwTimer = setTimeout(() => this.loadBrowse(this.state.browserRepoId, kw), 250);
+  };
+  async loadBrowse(repoId, keyword) {
+    if (!repoId) return;
+    this.setState({ browserLoading: true });
+    const mod = this._adapter || (await import("./src/api/adapter.js"));
+    this._adapter = mod;
+    const result = await mod.browse(repoId, keyword);
+    if (this.state.browserRepoId !== repoId) return;
+    this.setState({ browserMetrics: result.metrics, browserFiles: result.files, browserLoading: false });
+  }
+  toggleFileRow = (path) => {
+    const cur = this.state.browserExpandedFiles[path];
+    if (cur) {
+      this.setState((s) => { const n = { ...s.browserExpandedFiles }; delete n[path]; return { browserExpandedFiles: n }; });
+      return;
+    }
+    this.setState((s) => ({ browserExpandedFiles: { ...s.browserExpandedFiles, [path]: "loading" } }));
+    this._adapter.browseFile(this.state.browserRepoId, path).then((chunks) => {
+      this.setState((s) => ({ browserExpandedFiles: { ...s.browserExpandedFiles, [path]: chunks } }));
+    });
+  };
+
+  setPanel = (name) => {
+    const dir = PANEL_ORDER.indexOf(name) >= PANEL_ORDER.indexOf(this.state.activePanel) ? 1 : -1;
+    this.setState({ activePanel: name, panelDir: dir });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const t = THEMES[s.theme];
+    const isDark = s.theme === "dark";
+
+    const styles = {
+      appRoot: {
+        position: "relative", height: "100vh", width: "100%", overflow: "hidden",
+        background: t.bg, color: t.textHi, fontFamily: "'Inter',sans-serif",
+        transition: "background 350ms ease, color 350ms ease",
+      },
+      splash: {
+        position: "fixed", inset: 0, zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center",
+        background: t.bg, transition: "opacity 500ms ease",
+      },
+      glow1: {
+        position: "fixed", top: "-10%", left: "-5%", width: "560px", height: "560px", borderRadius: "50%",
+        background: `radial-gradient(circle, ${t.glow1}, transparent 70%)`, filter: "blur(10px)",
+        animation: "floatGlow1 22s ease-in-out infinite", pointerEvents: "none", zIndex: 0,
+      },
+      glow2: {
+        position: "fixed", bottom: "-15%", right: "-8%", width: "620px", height: "620px", borderRadius: "50%",
+        background: `radial-gradient(circle, ${t.glow2}, transparent 70%)`, filter: "blur(10px)",
+        animation: "floatGlow2 26s ease-in-out infinite", pointerEvents: "none", zIndex: 0,
+      },
+      appInner: { position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100vh", minHeight: 0 },
+      topBar: {
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "12px 20px", background: t.glassBg, backdropFilter: "blur(16px) saturate(140%)",
+        borderBottom: `1px solid ${t.glassBrd}`, transition: "background 350ms ease, border-color 350ms ease",
+        position: "sticky", top: 0, zIndex: 20,
+      },
+      bannerWrap: { cursor: "pointer", lineHeight: 0 },
+      topBarRight: { display: "flex", alignItems: "center", gap: "12px" },
+      modeBadge: {
+        display: "flex", alignItems: "center", gap: "8px", padding: "7px 14px", borderRadius: "999px",
+        background: t.glassBg, border: `1px solid ${t.glassBrd}`, fontSize: "12.5px", color: t.textLo,
+        fontFamily: "'JetBrains Mono',monospace", transition: "background 350ms ease, border-color 350ms ease",
+      },
+      modeDot: { width: "7px", height: "7px", borderRadius: "50%", background: s.health && s.health.mode === "vector" ? RELAY_3 : t.textLo, boxShadow: s.health && s.health.mode === "vector" ? `0 0 8px ${RELAY_3}` : "none", flexShrink: 0 },
+      themeToggle: {
+        display: "flex", alignItems: "center", gap: "6px", padding: "7px 12px", borderRadius: "999px",
+        background: t.glassBg, border: `1px solid ${t.glassBrd}`, cursor: "pointer", color: t.textHi,
+        transition: "background 350ms ease, border-color 200ms ease, transform 150ms ease", userSelect: "none",
+      },
+      themeIcon: { color: RELAY_3, display: "block" },
+      themeToggleLabel: { fontSize: "12px", color: t.textLo },
+      healthDot: {
+        width: "9px", height: "9px", borderRadius: "50%",
+        background: s.health ? (s.health.db_ok ? "#34d399" : "#f59e0b") : t.textLo,
+        boxShadow: s.health ? (s.health.db_ok ? "0 0 8px rgba(52,211,153,0.6)" : "0 0 8px rgba(245,158,11,0.6)") : "none",
+      },
+      dbBanner: {
+        padding: "10px 20px", background: "rgba(245,158,11,0.15)", borderBottom: "1px solid rgba(245,158,11,0.3)",
+        color: isDark ? "#fcd34d" : "#92400e", fontSize: "13px", fontFamily: "'JetBrains Mono',monospace",
+      },
+      body: { display: "flex", flexDirection: s.isMobile ? "column" : "row", flex: 1, minHeight: 0 },
+      rail: s.isMobile ? {
+        order: 2, flexShrink: 0, display: "flex", flexDirection: "column", gap: "0",
+        padding: "8px 10px", background: t.glassBg, borderTop: `1px solid ${t.glassBrd}`,
+        transition: "background 350ms ease, border-color 350ms ease", overflowX: "auto",
+      } : {
+        width: "220px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "18px",
+        padding: "18px 12px", background: t.glassBg, borderRight: `1px solid ${t.glassBrd}`,
+        transition: "background 350ms ease, border-color 350ms ease",
+      },
+      railNavGroup: s.isMobile ? { display: "flex", flexDirection: "row", gap: "4px", justifyContent: "space-around" } : { display: "flex", flexDirection: "column", gap: "4px" },
+      railDivider: { height: "1px", background: t.glassBrd, margin: "2px 4px", display: s.isMobile ? "none" : "block" },
+      quickAskGroup: { display: s.isMobile ? "none" : "flex", flexDirection: "column", gap: "6px", padding: "0 4px" },
+      quickAskHeading: { fontSize: "11px", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: t.textLo, padding: "0 6px 2px" },
+      panelViewport: { flex: 1, position: "relative", overflow: "hidden", padding: "20px" },
+      panelSlide: { height: "100%" },
+      panelInner: {
+        height: "100%", overflowY: "auto", padding: "26px 30px", borderRadius: "16px",
+        background: t.glassBg, backdropFilter: "blur(24px) saturate(140%)", border: `1px solid ${t.glassBrdH}`,
+        boxShadow: t.shadow, transition: "background 350ms ease, border-color 350ms ease",
+      },
+      panelModeBadge: {
+        display: "inline-flex", alignItems: "center", gap: "7px", padding: "5px 12px", borderRadius: "999px",
+        background: t.insetBg, fontSize: "11.5px", color: t.textLo, fontFamily: "'JetBrains Mono',monospace", marginBottom: "14px",
+      },
+      panelTitle: { fontSize: "22px", fontWeight: 600, letterSpacing: "-0.01em", marginBottom: "6px" },
+      panelSubtitle: { fontSize: "14px", color: t.textLo },
+      chatPanelInner: {
+        height: "100%", display: "flex", flexDirection: "column", borderRadius: "16px", overflow: "hidden",
+        background: t.glassBg, backdropFilter: "blur(24px) saturate(140%)", border: `1px solid ${t.glassBrdH}`,
+        boxShadow: t.shadow, transition: "background 350ms ease, border-color 350ms ease",
+      },
+    };
+
+    const chatStyles = {
+      chatHeaderRow: { display: "flex", alignItems: "center", gap: "12px", padding: "18px 22px 14px", borderBottom: `1px solid ${t.glassBrd}`, flexWrap: "wrap" },
+      repoSelectorWrap: { position: "relative", flex: 1, minWidth: "220px" },
+      repoTrigger: {
+        display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", padding: "9px 14px",
+        borderRadius: "10px", background: t.insetBg, border: `1px solid ${t.glassBrd}`, cursor: "pointer", fontSize: "13px",
+        color: t.textHi, transition: "border-color 200ms ease",
+      },
+      repoCaret: { color: t.textLo, fontSize: "11px" },
+      repoDropdown: {
+        position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, zIndex: 30, borderRadius: "10px", overflow: "hidden",
+        background: t.glassBg, backdropFilter: "blur(24px) saturate(140%)", border: `1px solid ${t.glassBrdH}`, boxShadow: t.shadow,
+        transformOrigin: "top", animation: "fadeUp 180ms ease",
+      },
+      clearBtn: { padding: "8px 14px", borderRadius: "9px", fontSize: "12.5px", color: t.textLo, cursor: "pointer", border: `1px solid ${t.glassBrd}`, transition: "background 200ms ease, color 200ms ease" },
+      emptyWrap: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px", padding: "60px 20px", flex: 1, textAlign: "center" },
+      emptyTitle: { fontSize: "15px", color: t.textLo, fontWeight: 500 },
+      goIngestBtn: { marginTop: "8px", padding: "10px 20px", borderRadius: "10px", background: RELAY_GRADIENT, color: "#fff", fontWeight: 600, fontSize: "13.5px", cursor: "pointer" },
+      msgListWrap: { flex: 1, overflowY: "auto", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "16px", position: "relative" },
+      userBubbleWrap: { display: "flex", justifyContent: "flex-end" },
+      userBubble: {
+        maxWidth: "72%", padding: "11px 16px", borderRadius: "14px 14px 3px 14px", background: t.insetBg,
+        border: `1px solid ${t.glassBrd}`, fontSize: "14px", lineHeight: 1.5, animation: "fadeUp 300ms ease",
+      },
+      errorCard: {
+        padding: "14px 18px", borderRadius: "14px", background: "rgba(245,158,11,0.14)", border: "1px solid rgba(245,158,11,0.3)",
+        color: isDark ? "#fcd34d" : "#92400e", fontSize: "13.5px", animation: "fadeUp 300ms ease",
+      },
+      assistantCard: {
+        position: "relative", padding: "18px 20px 16px", borderRadius: "14px", background: t.glassBg,
+        border: `1px solid ${t.glassBrd}`, animation: "fadeUp 300ms ease", overflow: "hidden",
+      },
+      topStrip: { position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: RELAY_GRADIENT },
+      pipelineTrack: { display: "flex", alignItems: "center", marginBottom: "14px" },
+      pipelineConnector: (lit) => ({ flex: 1, height: "2px", background: lit ? RELAY_GRADIENT : t.glassBrd, transition: "background 300ms ease", margin: "0 2px" }),
+      answerBody: { fontSize: "14.5px", lineHeight: 1.65, color: t.textHi },
+      caret: { display: "inline-block", width: "8px", height: "16px", background: RELAY_3, marginLeft: "2px", verticalAlign: "middle", animation: "caretBlink 1s steps(1) infinite" },
+      citationsRow: { display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px", marginTop: "14px" },
+      citationsLabel: { fontSize: "12px", color: t.textLo, fontFamily: "'JetBrains Mono',monospace" },
+      codeViewerWrap: {
+        marginTop: "12px", borderRadius: "10px", overflow: "hidden", background: t.insetBg, border: `1px solid ${t.glassBrd}`,
+        animation: "fadeUp 260ms cubic-bezier(0.34,1.56,0.64,1)",
+      },
+      codeViewerHeader: {
+        padding: "9px 14px", fontFamily: "'JetBrains Mono',monospace", fontSize: "12px", color: RELAY_3,
+        borderBottom: `1px solid ${t.glassBrd}`, background: t.glassBg,
+      },
+      codeViewerBody: { padding: "12px 14px", fontFamily: "'JetBrains Mono',monospace", fontSize: "12.5px", lineHeight: 1.6, overflowX: "auto", color: t.textHi },
+      gradedToggleRow: {
+        marginTop: "14px", padding: "9px 14px", borderRadius: "10px", background: t.insetBg, fontSize: "12.5px",
+        color: t.textLo, cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", userSelect: "none",
+      },
+      gradedChevron: (open) => ({ display: "inline-block", transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 200ms ease", fontSize: "10px" }),
+      gradedList: { display: "flex", flexDirection: "column", gap: "8px", marginTop: "10px" },
+      gradedRow: { padding: "11px 14px", borderRadius: "10px", background: t.insetBg, border: `1px solid ${t.glassBrd}` },
+      gradedTopLine: { display: "flex", alignItems: "center", gap: "10px", fontSize: "12.5px", flexWrap: "wrap" },
+      gradedPath: { fontFamily: "'JetBrains Mono',monospace", color: t.textHi },
+      gradedMeterTrack: { width: "70px", height: "5px", borderRadius: "4px", background: t.glassBrd, overflow: "hidden", flexShrink: 0 },
+      gradedMeterFill: { height: "100%", background: RELAY_GRADIENT, borderRadius: "4px" },
+      gradedScore: { fontFamily: "'JetBrains Mono',monospace", fontSize: "11.5px", color: t.textLo },
+      gradedReason: { fontSize: "12px", color: t.textLo, marginTop: "4px", fontStyle: "italic" },
+      gradedSourceBtn: { fontSize: "11.5px", color: RELAY_3, cursor: "pointer", marginTop: "6px", display: "inline-block" },
+      newTokensChip: {
+        position: "sticky", bottom: "8px", alignSelf: "center", padding: "7px 16px", borderRadius: "999px",
+        background: t.glassBg, backdropFilter: "blur(16px)", border: `1px solid ${t.glassBrdH}`, fontSize: "12px",
+        color: RELAY_3, cursor: "pointer", boxShadow: t.shadow, animation: "fadeUp 200ms ease",
+      },
+      inputBar: {
+        display: "flex", alignItems: "flex-end", gap: "10px", padding: "14px 22px", borderTop: `1px solid ${t.glassBrd}`,
+        background: t.glassBg,
+      },
+      textarea: {
+        flex: 1, resize: "none", border: `1px solid ${t.glassBrd}`, borderRadius: "12px", background: t.insetBg,
+        color: t.textHi, padding: "11px 14px", fontSize: "14px", fontFamily: "'Inter',sans-serif", outline: "none",
+        minHeight: "44px", maxHeight: "140px", lineHeight: 1.4, transition: "border-color 200ms ease, box-shadow 200ms ease",
+      },
+      sendBtn: {
+        width: "44px", height: "44px", borderRadius: "12px", background: RELAY_GRADIENT, display: "flex",
+        alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, color: "#fff",
+        transition: "transform 150ms ease, box-shadow 150ms ease",
+      },
+    };
+
+    const navMeta = [
+      { key: "ingest", label: "Ingest", icon: ICON_PACKAGE },
+      { key: "chat", label: "Chat", icon: ICON_CHAT },
+      { key: "browser", label: "Browser", icon: ICON_FOLDER },
+    ];
+    const navItems = navMeta.map((n) => {
+      const active = s.activePanel === n.key;
+      return {
+        label: n.label,
+        iconHtml: { __html: n.icon },
+        onClick: () => this.setPanel(n.key),
+        rowStyle: s.isMobile ? {
+          position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: "2px",
+          padding: "8px 14px 6px", borderRadius: "10px", cursor: "pointer",
+          background: active ? t.insetBg : "transparent", transition: "background 200ms ease",
+        } : {
+          position: "relative", display: "flex", alignItems: "center", gap: "10px",
+          padding: "9px 12px 9px 16px", borderRadius: "10px", cursor: "pointer",
+          background: active ? t.insetBg : "transparent",
+          transition: "background 200ms ease, transform 150ms ease",
+        },
+        barStyle: s.isMobile ? {
+          position: "absolute", top: 0, left: "18%", right: "18%", height: "3px", borderRadius: "3px",
+          background: active ? RELAY_GRADIENT : "transparent", transition: "background 250ms ease",
+        } : {
+          position: "absolute", left: 0, top: "6px", bottom: "6px", width: "3px", borderRadius: "3px",
+          background: active ? RELAY_GRADIENT : "transparent", transition: "background 250ms ease",
+        },
+        iconStyle: { color: active ? RELAY_3 : t.textLo, display: "flex", transition: "color 200ms ease, transform 200ms ease" },
+        labelStyle: { fontSize: s.isMobile ? "10.5px" : "14px", fontWeight: active ? 600 : 450, color: active ? t.textHi : t.textLo, transition: "color 200ms ease" },
+      };
+    });
+
+    const quickAsks = QUICK_ASK_TEXTS.map((text) => ({
+      text,
+      onClick: () => this.useQuickAsk(text),
+      chipStyle: {
+        padding: "8px 10px", borderRadius: "9px", fontSize: "12.5px", lineHeight: 1.35, cursor: "pointer",
+        background: t.insetBg, color: t.textLo, transition: "background 200ms ease, color 200ms ease",
+      },
+    }));
+
+    // ---------------- Ingest panel computed values ----------------
+    const phase = s.ingestPhase;
+    const dimmed = phase !== "form";
+    const isLocal = s.ingestMode === "local";
+    const segBase = {
+      flex: 1, textAlign: "center", padding: "9px 14px", borderRadius: "9px", fontSize: "13px", fontWeight: 500,
+      cursor: "pointer", transition: "background 200ms ease, color 200ms ease",
+    };
+    const barBusy = phase === "progress";
+    const barError = phase === "erroring";
+    const barDone = phase === "success";
+    const pct = Math.min(100, Math.round((s.progressCurrent / s.progressTotal) * 100));
+    const chevronBase = (i) => ({
+      transition: "stroke 250ms ease",
+      animation: barBusy ? `relayPulse 1.3s ease-in-out ${i * 150}ms infinite` : "none",
+    });
+    const ingest = {
+      formWrap: { display: "flex", flexDirection: "column", gap: "16px", opacity: dimmed ? 0.4 : 1, filter: dimmed ? "blur(2px)" : "blur(0px)", pointerEvents: dimmed ? "none" : "auto", transform: dimmed ? "translateY(-4px)" : "translateY(0)", transition: "opacity 300ms ease, filter 300ms ease, transform 300ms ease", marginTop: "18px" },
+      segWrap: { display: "flex", gap: "6px", padding: "5px", borderRadius: "12px", background: t.insetBg, width: "fit-content" },
+      segLocalStyle: { ...segBase, background: isLocal ? RELAY_GRADIENT : "transparent", color: isLocal ? "#fff" : t.textLo },
+      segGithubStyle: { ...segBase, background: !isLocal ? RELAY_GRADIENT : "transparent", color: !isLocal ? "#fff" : t.textLo },
+      selectLocal: () => this.setIngestMode("local"),
+      selectGithub: () => this.setIngestMode("github"),
+      fieldsViewport: { position: "relative", minHeight: "132px" },
+      localFieldsStyle: {
+        display: "flex", flexDirection: "column", gap: "8px", position: isLocal ? "static" : "absolute", top: 0, left: 0, right: 0,
+        opacity: isLocal ? 1 : 0, transform: isLocal ? "translateX(0)" : "translateX(-24px)",
+        pointerEvents: isLocal ? "auto" : "none", transition: "opacity 300ms ease, transform 300ms ease",
+      },
+      githubFieldsStyle: {
+        display: "flex", flexDirection: "column", gap: "8px", position: !isLocal ? "static" : "absolute", top: 0, left: 0, right: 0,
+        opacity: !isLocal ? 1 : 0, transform: !isLocal ? "translateX(0)" : "translateX(24px)",
+        pointerEvents: !isLocal ? "auto" : "none", transition: "opacity 300ms ease, transform 300ms ease",
+      },
+      labelStyle: { fontSize: "12px", color: t.textLo, marginTop: "2px" },
+      inputStyle: {
+        width: "100%", padding: "11px 13px", borderRadius: "10px", border: `1px solid ${t.glassBrd}`,
+        background: t.insetBg, color: t.textHi, fontFamily: "'JetBrains Mono',monospace", fontSize: "13px",
+        outline: "none", transition: "border-color 200ms ease, box-shadow 200ms ease",
+      },
+      localPath: s.localPath, onLocalPathChange: this.onLocalPathChange,
+      localName: s.localName, onLocalNameChange: this.onLocalNameChange,
+      githubUrl: s.githubUrl, onGithubUrlChange: this.onGithubUrlChange,
+      githubBranch: s.githubBranch, onGithubBranchChange: this.onGithubBranchChange,
+      hasError: !!s.ingestError,
+      errorBanner: { padding: "10px 14px", borderRadius: "10px", background: "rgba(245,158,11,0.14)", border: "1px solid rgba(245,158,11,0.3)", color: isDark ? "#fcd34d" : "#92400e", fontSize: "13px" },
+      errorText: s.ingestError,
+      allowlistHeader: { display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "13px", color: t.textLo, padding: "4px 2px", userSelect: "none" },
+      allowlistChevron: { display: "inline-block", transform: s.allowlistOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 200ms ease", fontSize: "11px" },
+      toggleAllowlist: this.toggleAllowlist,
+      allowlistOpen: s.allowlistOpen,
+      allowlistBody: { display: "flex", flexDirection: "column", gap: "6px", padding: "12px 14px", borderRadius: "10px", background: t.insetBg, animation: "fadeUp 250ms ease" },
+      allowlistMono: { fontFamily: "'JetBrains Mono',monospace", fontSize: "12.5px", color: t.textHi, letterSpacing: "0.02em" },
+      allowlistText: s.allowlist.join("  "),
+      allowlistCaption: { fontSize: "11.5px", color: t.textLo },
+
+      showChevrons: barBusy || barError,
+      chevronRow: { display: "flex", justifyContent: "center", padding: "6px 0 2px", marginTop: "22px" },
+      chevronStroke0: barError ? "#f59e0b" : RELAY_1,
+      chevronStroke1: barError ? "#f59e0b" : RELAY_2,
+      chevronStroke2: barError ? "#f59e0b" : RELAY_3,
+      chevronStyle0: chevronBase(0),
+      chevronStyle1: chevronBase(1),
+      chevronStyle2: chevronBase(2),
+
+      barShell: {
+        position: "relative", width: "100%", height: phase === "form" ? "52px" : "12px", borderRadius: "999px",
+        background: phase === "form" ? RELAY_GRADIENT : barError ? "rgba(245,158,11,0.30)" : t.insetBg,
+        overflow: "hidden", cursor: phase === "form" ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center",
+        marginTop: phase === "form" ? "6px" : "16px", transition: "height 380ms cubic-bezier(0.34,1.56,0.64,1), background 300ms ease, margin 300ms ease",
+        boxShadow: phase === "form" ? "0 4px 18px rgba(59,130,246,0.30)" : "none",
+      },
+      barFill: {
+        position: "absolute", left: 0, top: 0, bottom: 0, width: (barBusy || barDone) ? `${barDone ? 100 : pct}%` : "0%",
+        background: RELAY_GRADIENT, transition: "width 300ms ease, opacity 400ms ease", opacity: barDone ? 0 : 1, borderRadius: "999px",
+      },
+      barLabel: { position: "relative", zIndex: 1, color: "#fff", fontSize: "14.5px", fontWeight: 600, opacity: phase === "form" ? 1 : 0, transition: "opacity 200ms ease" },
+      barLabelText: "Ingest repository",
+      onBarClick: phase === "form" ? this.submitIngest : undefined,
+
+      showTicker: barBusy,
+      tickerRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "10px", padding: "10px 14px", borderRadius: "10px", background: t.insetBg, backdropFilter: "blur(8px)" },
+      tickerFile: { fontFamily: "'JetBrains Mono',monospace", fontSize: "12.5px", color: t.textHi, animation: "fadeUp 220ms ease" },
+      tickerCount: { fontFamily: "'JetBrains Mono',monospace", fontSize: "12px", color: RELAY_3, fontWeight: 600 },
+      progressFilename: s.progressFilename,
+      countLabel: `${s.counters.ingestCount || 0} / ${s.progressTotal} files processed`,
+
+      showSuccess: phase === "success",
+      successCard: { marginTop: "18px", padding: "20px", borderRadius: "14px", background: t.insetBg, border: `1px solid ${t.glassBrd}`, animation: "fadeUp 400ms cubic-bezier(0.34,1.56,0.64,1)" },
+      successTitle: { fontSize: "17px", fontWeight: 600, marginBottom: "14px" },
+      resultName: s.ingestResult ? s.ingestResult.name : "",
+      statsRow: { display: "flex", gap: "12px", marginBottom: "18px" },
+      statTile: { flex: 1, padding: "14px", borderRadius: "10px", background: t.glassBg, border: `1px solid ${t.glassBrd}`, textAlign: "center" },
+      statValue: { fontSize: "22px", fontWeight: 600, color: RELAY_3, fontFamily: "'JetBrains Mono',monospace" },
+      statCaption: { fontSize: "11.5px", color: t.textLo, marginTop: "4px" },
+      statFilesLabel: s.counters.statFiles || 0,
+      statChunksLabel: s.counters.statChunks || 0,
+      resultSource: s.ingestResult ? s.ingestResult.source : "",
+      successBtnRow: { display: "flex", gap: "10px" },
+      askBtn: { padding: "11px 18px", borderRadius: "10px", background: RELAY_GRADIENT, color: "#fff", fontWeight: 600, fontSize: "13.5px", cursor: "pointer", transition: "transform 150ms ease, box-shadow 150ms ease" },
+      anotherBtn: { padding: "11px 18px", borderRadius: "10px", background: "transparent", border: `1px solid ${t.glassBrd}`, color: t.textHi, fontWeight: 500, fontSize: "13.5px", cursor: "pointer", transition: "background 200ms ease" },
+      onAskQuestions: this.askQuestionsFromIngest,
+      onAnother: this.ingestAnother,
+    };
+
+    // ---------------- Chat panel computed values ----------------
+    const codeColors = { comment: t.textLo, string: isDark ? "#86efac" : "#15803d", keyword: RELAY_3, lineNum: t.textLo };
+    const selectedChatRepo = s.repos.find((r) => r.id === s.chatRepoId) || null;
+    const chatRepoOptions = s.repos.map((r) => ({
+      id: r.id,
+      label: `${r.name} (${r.file_count} files, ${r.chunk_count} chunks)`,
+      isNew: r.id === s.newRepoId,
+      onClick: () => this.selectChatRepo(r.id),
+      rowStyle: {
+        padding: "10px 14px", cursor: "pointer", fontSize: "13px", color: t.textHi,
+        background: r.id === s.newRepoId ? "linear-gradient(90deg, rgba(30,64,175,0.18), rgba(96,165,250,0.18))" : "transparent",
+        transition: "background 150ms ease",
+      },
+    }));
+
+    const renderMsg = (m) => {
+      if (m.role === "user") return { id: m.id, isUser: true, isAssistant: false, isError: false, text: m.content };
+      if (m.role === "error") return { id: m.id, isUser: false, isAssistant: false, isError: true, text: m.content };
+      const collapsed = m.pipeline.collapsed || m.done;
+      const stagesRender = PIPELINE_STAGES.map((st, i) => {
+        const lit = m.pipeline.activeIndex >= i;
+        const isLast = i === 3;
+        const label = isLast && m.pipeline.notFound ? "no match" : st.label;
+        const muted = isLast && m.pipeline.notFound;
+        const isLit = lit && !muted;
+        return {
+          label, lit: isLit, muted, key: st.key + i,
+          nodeStyle: { color: isLit ? RELAY_3 : t.textLo, fontWeight: isLit ? 600 : 500, fontSize: "11.5px", fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap", display: "flex", alignItems: "center", transition: "color 300ms ease" },
+          dotStyle: { width: "8px", height: "8px", borderRadius: "50%", background: isLit ? RELAY_GRADIENT : t.glassBrd, marginRight: "6px", boxShadow: isLit ? "0 0 6px rgba(96,165,250,0.6)" : "none", transition: "background 300ms ease, box-shadow 300ms ease", flexShrink: 0 },
+        };
+      }).map((st, i, arr) => ({ ...st, connectorStyle: chatStyles.pipelineConnector(st.lit && i < arr.length - 1 && arr[i + 1].lit) }));
+      const citationsChips = (m.citations || []).map((c, i) => ({
+        idx: i, num: i + 1, path: c.path,
+        tooltip: `${c.path}:${c.start_line}-${c.end_line}`,
+        isOpen: m.openCitation === i,
+        onClick: () => this.toggleCitation(m.id, i),
+        chipStyle: {
+          padding: "5px 10px", borderRadius: "7px", fontFamily: "'JetBrains Mono',monospace", fontSize: "12px",
+          cursor: "pointer", background: m.openCitation === i ? t.glassBrdH : t.insetBg, color: m.openCitation === i ? RELAY_3 : t.textLo,
+          border: `1px solid ${m.openCitation === i ? t.glassBrdH : "transparent"}`, transition: "background 200ms ease, color 200ms ease, transform 150ms ease",
+        },
+      }));
+      const openChunk = m.openCitation != null && m.citations[m.openCitation] ? m.citations[m.openCitation] : null;
+      const displayedGraded = (m.graded && m.graded.length > 0) ? m.graded : (m.retrieved || []).map((r) => ({ ...r, keep: true, reason: "Retrieved" }));
+      const gradedRows = displayedGraded.map((g, i) => ({
+        idx: i,
+        keepIcon: g.keep ? "✓" : "✗",
+        keepIconStyle: { color: g.keep ? RELAY_3 : t.textLo, fontWeight: 700 },
+        pathLabel: `${g.path}:${g.start_line}-${g.end_line}`,
+        scoreLabel: g.score.toFixed(3),
+        meterWidth: `${Math.max(3, Math.round(g.score * 100))}%`,
+        reason: g.reason,
+        sourceOpen: !!m.gradedOpen[i],
+        sourceLabel: m.gradedOpen[i] ? "▾ Hide source" : "▸ View source",
+        toggleSource: () => this.toggleGradedSource(m.id, i),
+        codeHtml: { __html: buildCodeHtml(g.content, g.start_line, codeColors) },
+        rowStyle: { animation: `fadeUp 320ms ease ${i * 40}ms both` },
+      }));
+      return {
+        id: m.id, isUser: false, isAssistant: true, isError: false,
+        stagesRender, showTrack: !collapsed, showStrip: collapsed,
+        answerHtml: { __html: renderMarkdown(m.streamText) },
+        showCaret: !m.done,
+        citationsChips, hasCitations: citationsChips.length > 0,
+        openChunk, openChunkHtml: openChunk ? { __html: buildCodeHtml(openChunk.content, openChunk.start_line, codeColors) } : null,
+        openChunkKey: m.id + "_" + m.openCitation,
+        chunksOpen: m.chunksOpen, toggleChunks: () => this.toggleChunksOpen(m.id),
+        chunksChevronStyle: { display: "inline-block", transform: m.chunksOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 200ms ease", fontSize: "10px" },
+        chunksLabel: `Retrieved chunks & grades (${displayedGraded.length})`,
+        hasGraded: displayedGraded.length > 0,
+        gradedRows,
+      };
+    };
+    const messagesRender = s.messages.map(renderMsg);
+
+    const chat = {
+      hasRepos: s.repos.length > 0,
+      repoOptions: chatRepoOptions,
+      selectedLabel: selectedChatRepo ? selectedChatRepo.name : "Select a repository",
+      dropdownOpen: s.chatRepoDropdownOpen,
+      toggleDropdown: this.toggleChatRepoDropdown,
+      goToIngest: this.goToIngestFromChat,
+      inputValue: s.chatInput,
+      onInputChange: this.onChatInputChange,
+      onInputKeyDown: this.onChatInputKeyDown,
+      onSend: () => this.sendMessage(s.chatInput),
+      onClear: this.clearChatHistory,
+      hasMessages: s.messages.length > 0,
+      messagesClearing: s.messagesClearing,
+      messages: messagesRender,
+      textareaFullStyle: {
+        ...chatStyles.textarea,
+        boxShadow: s.chatInputPulse ? `0 0 0 3px rgba(96,165,250,0.45)` : "0 0 0 0px rgba(96,165,250,0)",
+        borderColor: s.chatInputPulse ? RELAY_3 : chatStyles.textarea.border.split(" ").pop(),
+      },
+      msgListRef: this.msgListRef,
+      onScroll: this.onChatScroll,
+      showNewTokensChip: s.showNewTokensChip,
+      scrollToBottom: this.scrollToBottomChip,
+      emptyIconHtml: { __html: emptyIconHtml(isDark, 88) },
+      textareaRef: this.textareaRef,
+    };
+
+    // ---------------- Index Browser computed values ----------------
+    const selectedBrowserRepo = s.repos.find((r) => r.id === s.browserRepoId) || null;
+    const browserRepoOptions = s.repos.map((r) => ({
+      id: r.id,
+      label: `${r.name} (ingested ${formatDate(r.ingested_at)})`,
+      onClick: () => this.selectBrowserRepo(r.id),
+    }));
+    const kw = s.browserKeyword.trim().toLowerCase();
+    const fileRows = s.browserFiles.map((f) => {
+      const expanded = s.browserExpandedFiles[f.path];
+      const isLoading = expanded === "loading";
+      const chunks = Array.isArray(expanded) ? expanded : [];
+      return {
+        path: f.path, chunkCount: f.chunk_count, lineRange: `lines ${f.start_line}\u2013${f.end_line}`,
+        isOpen: !!expanded, isLoading,
+        onClick: () => this.toggleFileRow(f.path),
+        chunks: chunks.map((c, i) => ({
+          idx: i, lineHeader: `Lines ${c.start_line}\u2013${c.end_line}`,
+          html: { __html: buildCodeHtml(c.content, c.start_line, codeColors) },
+        })),
+      };
+    });
+    const browserStyles = {
+      headerRow: { display: "flex", alignItems: "center", gap: "14px", marginBottom: "18px", flexWrap: "wrap" },
+      dropdownRow: { padding: "10px 14px", cursor: "pointer", fontSize: "13px", color: t.textHi, transition: "background 150ms ease" },
+      metricsRow: { display: "flex", gap: "14px", marginBottom: "20px" },
+      metricTile: { flex: 1, padding: "18px", borderRadius: "12px", background: t.insetBg, border: `1px solid ${t.glassBrd}`, position: "relative", overflow: "hidden", transition: "opacity 300ms ease" },
+      metricValue: { fontSize: "26px", fontWeight: 600, color: RELAY_3, fontFamily: "'JetBrains Mono',monospace" },
+      metricCaption: { fontSize: "12px", color: t.textLo, marginTop: "4px" },
+      filterRow: { display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" },
+      filterInput: {
+        flex: 1, padding: "11px 14px", borderRadius: "10px", border: `1px solid ${t.glassBrd}`, background: t.insetBg,
+        color: t.textHi, fontSize: "13.5px", outline: "none", transition: "border-color 200ms ease, box-shadow 200ms ease",
+      },
+      fileCount: { fontSize: "12.5px", color: t.textLo, fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap" },
+      fileList: { display: "flex", flexDirection: "column", gap: "8px" },
+      fileRowOuter: { borderRadius: "10px", overflow: "hidden" },
+      fileRow: {
+        display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: "10px",
+        background: t.insetBg, border: `1px solid ${t.glassBrd}`, cursor: "pointer", transition: "transform 200ms ease, border-color 200ms ease",
+      },
+      filePath: { fontFamily: "'JetBrains Mono',monospace", fontSize: "13px", color: t.textHi },
+      fileMeta: { fontSize: "11.5px", color: t.textLo, marginTop: "3px" },
+      fileChevron: { color: t.textLo, fontSize: "18px", transition: "transform 200ms ease, color 200ms ease" },
+      loadingRow: { display: "flex", justifyContent: "center", padding: "12px" },
+      chunkList: { display: "flex", flexDirection: "column", padding: "4px 0 6px" },
+      chunkBlock: { padding: "10px 16px 12px", borderTop: "1px solid rgba(96,165,250,0.12)" },
+      chunkHeader: { fontSize: "11.5px", color: RELAY_3, fontFamily: "'JetBrains Mono',monospace", marginBottom: "6px" },
+      chunkBody: { fontFamily: "'JetBrains Mono',monospace", fontSize: "12px", lineHeight: 1.6, overflowX: "auto", color: t.textHi },
+    };
+
+    const browser = {
+      hasRepos: s.repos.length > 0,
+      repoOptions: browserRepoOptions,
+      selectedLabel: selectedBrowserRepo ? `${selectedBrowserRepo.name} (ingested ${formatDate(selectedBrowserRepo.ingested_at)})` : "Select a repository",
+      dropdownOpen: s.browserRepoDropdownOpen,
+      toggleDropdown: this.toggleBrowserRepoDropdown,
+      metrics: s.browserMetrics,
+      metricFiles: s.browserMetrics ? s.browserMetrics.files : 0,
+      metricChunks: s.browserMetrics ? s.browserMetrics.chunks : 0,
+      metricSource: s.browserMetrics ? s.browserMetrics.source : "\u2014",
+      keyword: s.browserKeyword,
+      onKeywordChange: this.onBrowserKeywordChange,
+      fileRows,
+      fileCountLabel: `${fileRows.length} file${fileRows.length === 1 ? "" : "s"}`,
+      noHits: kw.length > 0 && fileRows.length === 0,
+      loading: s.browserLoading,
+      emptyIconHtml: { __html: emptyIconHtml(isDark, 88) },
+    };
+
+    return {
+      state_splashDone: s.splashDone,
+      state_dbBannerVisible: s.dbBannerVisible,
+      t, isDark,
+      styles,
+      ingest,
+      chat,
+      chatStyles,
+      browser,
+      browserStyles,
+      themeLabel: isDark ? "Dark" : "Light",
+      modeDisplay: s.health ? s.health.mode_display : "Loading…",
+      healthTitle: s.health ? (s.health.db_ok ? "Database connected" : s.health.db_error || "Database unavailable") : "",
+      dbBannerText: s.health && s.health.db_error ? s.health.db_error : "Database unavailable — falling back to full-text search.",
+      toggleTheme: this.toggleTheme,
+      onBannerHover: this.onBannerHover,
+      navItems,
+      quickAsks,
+      isIngestPanel: s.activePanel === "ingest",
+      isChatPanel: s.activePanel === "chat",
+      isBrowserPanel: s.activePanel === "browser",
+    };
+  }
+}
+
+</script>
+</body>
+</html>
