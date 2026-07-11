@@ -31,3 +31,13 @@ class TestStaticFrontend:
 
         assert res.status_code == 200
         assert isinstance(res.json(), list)
+
+
+class TestAdapterIsLive:
+    def test_adapter_no_longer_ships_mock_data(self):
+        client = TestClient(app)
+        res = client.get("/src/api/adapter.js")
+
+        assert res.status_code == 200
+        assert "MOCK MODE" not in res.text
+        assert "fetch(" in res.text
