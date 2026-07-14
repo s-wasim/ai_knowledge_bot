@@ -46,4 +46,4 @@ def embed_texts(texts: list[str], batch_size: int = BATCH_SIZE) -> list[list[flo
 
 
 def is_voyage_available() -> bool:
-    return os.environ.get("VOYAGE_API_KEY") is not None
+    return bool(os.environ.get("VOYAGE_API_KEY"))

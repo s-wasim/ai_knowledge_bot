@@ -17,10 +17,14 @@ class FtsRetriever:
                 text(
                     """
                     SELECT path, start_line, end_line, content,
-                           ts_rank(tsv, plainto_tsquery('english', :query)) AS score
-                    FROM chunks
+                           ts_rank(tsv, query) AS score
+                    FROM chunks,
+                         to_tsquery(
+                             'english',
+                             replace(plainto_tsquery('english', :query)::text, ' & ', ' | ')
+                         ) AS query
                     WHERE repo_id = :repo_id
-                      AND tsv @@ plainto_tsquery('english', :query)
+                      AND tsv @@ query
                     ORDER BY score DESC
                     LIMIT :k
                     """

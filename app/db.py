@@ -1,4 +1,5 @@
 import os
+import threading
 import time
 from datetime import datetime, timezone
 
@@ -50,6 +51,7 @@ class Chunk(Base):
 _engine = None
 _session_factory = None
 _scoped_session = None
+_init_lock = threading.Lock()
 
 
 def init_db(retries=10, delay=3):
@@ -105,7 +107,9 @@ def init_db(retries=10, delay=3):
 def get_session():
     global _scoped_session
     if _scoped_session is None:
-        init_db()
+        with _init_lock:
+            if _scoped_session is None:
+                init_db()
     return _scoped_session
 
 
