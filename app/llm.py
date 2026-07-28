@@ -31,7 +31,7 @@ def _require_api_key() -> str:
     return api_key
 
 
-def get_llm(model: str = DEFAULT_MODEL, temperature: float = 0):
+def get_llm(model: str = DEFAULT_MODEL):
     """Non-streaming client.
 
     temperature is actually forwarded — it previously sat in the signature and was
@@ -39,15 +39,14 @@ def get_llm(model: str = DEFAULT_MODEL, temperature: float = 0):
     """
     return ChatAnthropic(
         model=model,
-        api_key=_require_api_key(),
-        temperature=temperature,
+        api_key=_require_api_key()
     )
 
 
-def get_llm_streaming(model: str = DEFAULT_MODEL, temperature: float = 0):
+def get_llm_streaming(model: str = DEFAULT_MODEL):
     return ChatAnthropic(
         model=model,
         api_key=_require_api_key(),
-        temperature=temperature,
+        # temperature=temperature,
         streaming=True,
     )
