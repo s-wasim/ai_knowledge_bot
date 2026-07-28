@@ -258,9 +258,6 @@
                         <div style="{{ chatStyles.userBubble }}">{{ msg.text }}</div>
                       </div>
                     </sc-if>
-                    <sc-if value="{{ msg.isError }}" hint-placeholder-val="{{ false }}">
-                      <div style="{{ chatStyles.errorCard }}">⚠ {{ msg.text }}</div>
-                    </sc-if>
                     <sc-if value="{{ msg.isAssistant }}" hint-placeholder-val="{{ false }}">
                       <div style="{{ chatStyles.assistantCard }}">
                         <sc-if value="{{ msg.showStrip }}" hint-placeholder-val="{{ false }}">
@@ -322,6 +319,10 @@
                               </sc-for>
                             </div>
                           </sc-if>
+                        </sc-if>
+
+                        <sc-if value="{{ msg.isError }}" hint-placeholder-val="{{ false }}">
+                          <div style="{{ chatStyles.errorCard }}">⚠ {{ msg.text }}</div>
                         </sc-if>
                       </div>
                     </sc-if>
@@ -759,7 +760,7 @@ class Component extends DCLogic {
       onNode: ({ node }) => this.updateMessage(assistantId, (m) => ({ ...m, pipeline: { ...m.pipeline, activeIndex: NODE_INDEX[node], notFound: node === "answer_not_found" } })),
       onToken: ({ text: tok }) => this.updateMessage(assistantId, (m) => ({ ...m, streamText: m.streamText + tok, pipeline: { ...m.pipeline, collapsed: true } })),
       onFinal: (final) => this.updateMessage(assistantId, (m) => ({ ...m, streamText: final.answer, citations: final.citations, graded: final.graded, retrieved: final.retrieved, done: true })),
-      onError: (err) => this.updateMessage(assistantId, (m) => ({ ...m, role: "error", content: `Sorry, an error occurred: ${err.message}`, done: true })),
+      onError: (err) => this.updateMessage(assistantId, (m) => ({ ...m, errorMessage: `Sorry, an error occurred: ${err.message}`, done: true, pipeline: { ...m.pipeline, collapsed: true } })),
     });
   };
 
@@ -1184,7 +1185,6 @@ class Component extends DCLogic {
 
     const renderMsg = (m) => {
       if (m.role === "user") return { id: m.id, isUser: true, isAssistant: false, isError: false, text: m.content };
-      if (m.role === "error") return { id: m.id, isUser: false, isAssistant: false, isError: true, text: m.content };
       const collapsed = m.pipeline.collapsed || m.done;
       const stagesRender = PIPELINE_STAGES.map((st, i) => {
         const lit = m.pipeline.activeIndex >= i;
@@ -1226,7 +1226,7 @@ class Component extends DCLogic {
         rowStyle: { animation: `fadeUp 320ms ease ${i * 40}ms both` },
       }));
       return {
-        id: m.id, isUser: false, isAssistant: true, isError: false,
+        id: m.id, isUser: false, isAssistant: true, isError: !!m.errorMessage, text: m.errorMessage || "",
         stagesRender, showTrack: !collapsed, showStrip: collapsed,
         answerHtml: { __html: renderMarkdown(m.streamText) },
         showCaret: !m.done,

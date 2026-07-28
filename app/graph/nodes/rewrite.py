@@ -1,7 +1,7 @@
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.graph.state import RagState
-from app.llm import get_llm
+from app.llm import extract_text, get_llm
 
 
 def rewrite_query(state: RagState) -> dict:
@@ -31,7 +31,7 @@ def rewrite_query(state: RagState) -> dict:
     messages.append(HumanMessage(content=f"Current question: {question}"))
 
     response = llm.invoke(messages)
-    rewritten = response.content.strip()
+    rewritten = extract_text(response.content).strip()
 
     if not rewritten:
         rewritten = question

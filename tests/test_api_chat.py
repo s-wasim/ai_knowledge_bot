@@ -52,6 +52,42 @@ class TestChat:
 
     @patch("app.api.chat.get_graph")
     @patch("app.api.chat.get_retriever_and_mode")
+    def test_streams_ignore_thinking_block_content(
+        self, mock_get_retriever_and_mode, mock_get_graph
+    ):
+        """A thinking-block chunk (list-shaped content) must be skipped in the
+        SSE token stream instead of being forwarded as-is or crashing."""
+        mock_get_retriever_and_mode.return_value = (MagicMock(), "fts")
+
+        def _fake_stream_with_thinking(state, config, stream_mode):
+            chunk = ChunkData(path="app/db.py", start_line=1, end_line=10, content="engine = ...", score=0.9)
+            yield "updates", {"retrieve": {"retrieved": [chunk]}}
+            yield "messages", (
+                SimpleNamespace(content=[{"type": "thinking", "thinking": "hmm", "signature": "abc"}]),
+                {"langgraph_node": "generate_answer"},
+            )
+            yield "messages", (SimpleNamespace(content="The answer."), {"langgraph_node": "generate_answer"})
+            yield "updates", {"generate_answer": {"answer": "The answer.", "citations": []}}
+
+        fake_graph = MagicMock()
+        fake_graph.stream.side_effect = _fake_stream_with_thinking
+        mock_get_graph.return_value = fake_graph
+
+        client = TestClient(app)
+        res = client.post(
+            "/chat",
+            json={"repo_id": 1, "question": "Where is the DB configured?", "history": []},
+        )
+
+        assert res.status_code == 200
+        text = res.text
+        assert "event: token" in text
+        assert '"text": "The answer."' in text
+        assert "thinking" not in text
+        assert "event: error" not in text
+
+    @patch("app.api.chat.get_graph")
+    @patch("app.api.chat.get_retriever_and_mode")
     def test_graph_exception_emits_error_event(
         self, mock_get_retriever_and_mode, mock_get_graph
     ):

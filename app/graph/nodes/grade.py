@@ -4,7 +4,7 @@ import logging
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.graph.state import GradedChunk, RagState
-from app.llm import get_llm
+from app.llm import extract_text, get_llm
 from app.retrieval.base import ChunkData
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ def grade_chunks(state: RagState) -> dict:
 
     try:
         response = llm.invoke(messages)
-        content = response.content.strip()
+        content = extract_text(response.content).strip()
 
         if "```json" in content:
             content = content.split("```json")[1].split("```")[0].strip()

@@ -33,6 +33,36 @@ def test_rewrite_with_history(mock_get_llm):
 
 
 @patch("app.graph.nodes.rewrite.get_llm")
+def test_rewrite_with_list_content_response_falls_back_to_question(mock_get_llm):
+    """response.content can arrive as list-shaped content blocks (e.g. Claude
+    extended thinking) instead of a plain str; rewrite_query must not crash
+    and should fall back to the original question when no text is present."""
+    mock_llm = MagicMock()
+    mock_llm.invoke.return_value.content = [
+        {"type": "thinking", "thinking": "reasoning...", "signature": "abc"}
+    ]
+    mock_get_llm.return_value = mock_llm
+
+    state = RagState(
+        question="how do I change it?",
+        chat_history=[
+            {"role": "user", "content": "Where is the database connection configured?"},
+            {"role": "assistant", "content": "It's in db.py"},
+        ],
+        rewritten_query=None,
+        retrieved=[],
+        graded=[],
+        answer=None,
+        citations=[],
+        mode="fts",
+        repo_id=1,
+    )
+
+    result = rewrite_query(state)
+    assert result["rewritten_query"] == state["question"]
+
+
+@patch("app.graph.nodes.rewrite.get_llm")
 def test_rewrite_no_history(mock_get_llm):
     state = RagState(
         question="Where is the database connection configured?",

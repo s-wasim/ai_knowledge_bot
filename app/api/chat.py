@@ -8,6 +8,7 @@ from app.api.deps import get_graph, get_retriever_and_mode
 from app.api.schemas import ChatRequest
 from app.db import get_session
 from app.graph.state import RagState
+from app.llm import extract_text
 
 router = APIRouter()
 
@@ -79,8 +80,10 @@ def chat(body: ChatRequest) -> StreamingResponse:
                         final_state.update(node_output)
                 elif stream_mode == "messages":
                     message_chunk, metadata = payload
-                    if metadata.get("langgraph_node") == "generate_answer" and message_chunk.content:
-                        yield _sse_frame("token", {"text": message_chunk.content})
+                    if metadata.get("langgraph_node") == "generate_answer":
+                        text = extract_text(message_chunk.content)
+                        if text:
+                            yield _sse_frame("token", {"text": text})
 
             answer = final_state.get("answer") or "No answer generated."
             citations = final_state.get("citations", [])
