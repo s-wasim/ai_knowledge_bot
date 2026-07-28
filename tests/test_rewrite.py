@@ -22,7 +22,7 @@ def test_rewrite_with_history(mock_get_llm):
         graded=[],
         answer=None,
         citations=[],
-        mode="fts",
+        mode="hybrid",
         repo_id=1,
     )
 
@@ -54,7 +54,7 @@ def test_rewrite_with_list_content_response_falls_back_to_question(mock_get_llm)
         graded=[],
         answer=None,
         citations=[],
-        mode="fts",
+        mode="hybrid",
         repo_id=1,
     )
 
@@ -72,7 +72,7 @@ def test_rewrite_no_history(mock_get_llm):
         graded=[],
         answer=None,
         citations=[],
-        mode="fts",
+        mode="hybrid",
         repo_id=1,
     )
     result = rewrite_query(state)
@@ -94,7 +94,7 @@ def test_retrieve_node():
         graded=[],
         answer=None,
         citations=[],
-        mode="fts",
+        mode="hybrid",
         repo_id=1,
     )
 
@@ -105,7 +105,7 @@ def test_retrieve_node():
     assert len(result["retrieved"]) == 1
     assert result["retrieved"][0].path == "db.py"
     mock_retriever.search.assert_called_once_with(
-        repo_id=1, query="database connection", k=8
+        repo_id=1, query="database connection", k=24
     )
 
 
@@ -118,7 +118,7 @@ def test_retrieve_node_missing_retriever_in_config():
         graded=[],
         answer=None,
         citations=[],
-        mode="fts",
+        mode="hybrid",
         repo_id=1,
     )
 

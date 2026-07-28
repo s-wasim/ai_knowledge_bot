@@ -2,7 +2,7 @@ from app.api.schemas import ChatMessage, ChatRequest, HealthOut, RepoOut
 
 
 def test_health_out_defaults_error_to_none():
-    health = HealthOut(db_ok=True, mode="fts", mode_display="Full-text search")
+    health = HealthOut(db_ok=True, mode="hybrid", mode_display="Hybrid (code embeddings + full-text + symbols)")
     assert health.db_error is None
 
 

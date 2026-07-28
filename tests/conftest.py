@@ -19,13 +19,3 @@ def mock_session_factory(mock_session):
     factory = MagicMock()
     factory.return_value = mock_session
     return factory
-
-
-@pytest.fixture
-def mock_voyage_client():
-    """Return a mock Voyage AI client."""
-    client = MagicMock()
-    embed_response = MagicMock()
-    embed_response.embeddings = [[0.1] * 1024]
-    client.embed.return_value = embed_response
-    return client

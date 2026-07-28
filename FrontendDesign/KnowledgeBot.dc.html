@@ -17,6 +17,27 @@
 <body>
 <x-dc>
 
+<!--
+  NOTE ON `sc-camel-dangerously-set-inner-h-t-m-l`
+  ------------------------------------------------
+  Every HTML-injecting attribute below uses this spelling instead of React's
+  `dangerouslySetInnerHTML`, and it must stay that way.
+
+  support.js reads this template from `document.querySelector("x-dc").innerHTML`,
+  which is markup the browser has already parsed — and the HTML parser lowercases
+  every attribute name. `dangerouslySetInnerHTML` therefore arrives as
+  `dangerouslysetinnerhtml`, which React does not recognise, so it is emitted as a
+  literal DOM attribute reading `[object Object]` and no HTML is ever injected.
+  The runtime normally recovers the original casing by re-fetching the raw file,
+  but only when `window.__resources` is unset — and this page sets it to vendor
+  React locally for offline use. The result was an empty answer body, missing nav
+  icons, and blank code viewers.
+
+  `sc-camel-` is the runtime's own escape hatch (CAMEL_ATTR in support.js): the
+  kebab suffix survives lowercasing untouched and is converted back to
+  `dangerouslySetInnerHTML` by collectProps().
+-->
+
 <helmet>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -111,7 +132,7 @@
           <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="3">
             <div style="{{ item.rowStyle }}" onClick="{{ item.onClick }}" role="button" tabIndex="0">
               <div style="{{ item.barStyle }}"></div>
-              <span style="{{ item.iconStyle }}" dangerouslySetInnerHTML="{{ item.iconHtml }}"></span>
+              <span style="{{ item.iconStyle }}" sc-camel-dangerously-set-inner-h-t-m-l="{{ item.iconHtml }}"></span>
               <span style="{{ item.labelStyle }}">{{ item.label }}</span>
             </div>
           </sc-for>
@@ -198,6 +219,12 @@
                 </div>
               </sc-if>
 
+              <sc-if value="{{ ingest.hasWarnings }}" hint-placeholder-val="{{ false }}">
+                <sc-for list="{{ ingest.warningRows }}" as="w" hint-placeholder-count="1">
+                  <div style="{{ w.rowStyle }}">⚠ {{ w.message }}</div>
+                </sc-for>
+              </sc-if>
+
               <sc-if value="{{ ingest.showSuccess }}" hint-placeholder-val="{{ false }}">
                 <div style="{{ ingest.successCard }}">
                   <div style="{{ ingest.successTitle }}">{{ ingest.resultName }}</div>
@@ -237,7 +264,7 @@
 
               <sc-if value="{{ !chat.hasRepos }}" hint-placeholder-val="{{ false }}">
                 <div style="{{ chatStyles.emptyWrap }}">
-                  <span dangerouslySetInnerHTML="{{ chat.emptyIconHtml }}"></span>
+                  <span sc-camel-dangerously-set-inner-h-t-m-l="{{ chat.emptyIconHtml }}"></span>
                   <div style="{{ chatStyles.emptyTitle }}">No repos ingested yet.</div>
                   <div style="{{ chatStyles.goIngestBtn }}" onClick="{{ chat.goToIngest }}" role="button" tabIndex="0">Go to Ingest</div>
                 </div>
@@ -247,7 +274,7 @@
                 <div style="{{ chatStyles.msgListWrap }}" ref="{{ chat.msgListRef }}" onScroll="{{ chat.onScroll }}" aria-live="polite">
                   <sc-if value="{{ !chat.hasMessages }}" hint-placeholder-val="{{ false }}">
                     <div style="{{ chatStyles.emptyWrap }}">
-                      <span dangerouslySetInnerHTML="{{ chat.emptyIconHtml }}"></span>
+                      <span sc-camel-dangerously-set-inner-h-t-m-l="{{ chat.emptyIconHtml }}"></span>
                       <div style="{{ chatStyles.emptyTitle }}">Ask a question about this codebase to get started.</div>
                     </div>
                   </sc-if>
@@ -272,7 +299,7 @@
                           </div>
                         </sc-if>
 
-                        <div style="{{ chatStyles.answerBody }}" dangerouslySetInnerHTML="{{ msg.answerHtml }}"></div>
+                        <div style="{{ chatStyles.answerBody }}" sc-camel-dangerously-set-inner-h-t-m-l="{{ msg.answerHtml }}"></div>
                         <sc-if value="{{ msg.showCaret }}" hint-placeholder-val="{{ false }}">
                           <span style="{{ chatStyles.caret }}"></span>
                         </sc-if>
@@ -287,7 +314,7 @@
                           <sc-if value="{{ msg.openChunk }}" hint-placeholder-val="{{ false }}">
                             <div style="{{ chatStyles.codeViewerWrap }}" key="{{ msg.openChunkKey }}">
                               <div style="{{ chatStyles.codeViewerHeader }}">{{ msg.openChunk.path }}:{{ msg.openChunk.start_line }}-{{ msg.openChunk.end_line }}</div>
-                              <div style="{{ chatStyles.codeViewerBody }}" dangerouslySetInnerHTML="{{ msg.openChunkHtml }}"></div>
+                              <div style="{{ chatStyles.codeViewerBody }}" sc-camel-dangerously-set-inner-h-t-m-l="{{ msg.openChunkHtml }}"></div>
                             </div>
                           </sc-if>
                         </sc-if>
@@ -304,14 +331,19 @@
                                     <div style="{{ chatStyles.gradedTopLine }}">
                                       <span style="{{ g.keepIconStyle }}">{{ g.keepIcon }}</span>
                                       <span style="{{ chatStyles.gradedPath }}">{{ g.pathLabel }}</span>
-                                      <div style="{{ chatStyles.gradedMeterTrack }}"><div style="{{ chatStyles.gradedMeterFill }}"></div></div>
+                                      <div style="{{ chatStyles.gradedMeterTrack }}"><div style="{{ g.meterFillStyle }}"></div></div>
                                       <span style="{{ chatStyles.gradedScore }}">{{ g.scoreLabel }}</span>
+                                      <sc-if value="{{ g.hasSources }}" hint-placeholder-val="{{ true }}">
+                                        <sc-for list="{{ g.sourceBadges }}" as="s" hint-placeholder-count="2">
+                                          <span style="{{ s.badgeStyle }}">{{ s.label }}</span>
+                                        </sc-for>
+                                      </sc-if>
                                     </div>
                                     <div style="{{ chatStyles.gradedReason }}">{{ g.reason }}</div>
                                     <div style="{{ chatStyles.gradedSourceBtn }}" onClick="{{ g.toggleSource }}" role="button" tabIndex="0">{{ g.sourceLabel }}</div>
                                     <sc-if value="{{ g.sourceOpen }}" hint-placeholder-val="{{ false }}">
                                       <div style="{{ chatStyles.codeViewerWrap }}">
-                                        <div style="{{ chatStyles.codeViewerBody }}" dangerouslySetInnerHTML="{{ g.codeHtml }}"></div>
+                                        <div style="{{ chatStyles.codeViewerBody }}" sc-camel-dangerously-set-inner-h-t-m-l="{{ g.codeHtml }}"></div>
                                       </div>
                                     </sc-if>
                                   </div>
@@ -362,7 +394,7 @@
 
               <sc-if value="{{ !browser.hasRepos }}" hint-placeholder-val="{{ false }}">
                 <div style="{{ chatStyles.emptyWrap }}">
-                  <span dangerouslySetInnerHTML="{{ browser.emptyIconHtml }}"></span>
+                  <span sc-camel-dangerously-set-inner-h-t-m-l="{{ browser.emptyIconHtml }}"></span>
                   <div style="{{ chatStyles.emptyTitle }}">No repos ingested yet.</div>
                 </div>
               </sc-if>
@@ -409,7 +441,7 @@
                           <sc-for list="{{ f.chunks }}" as="ch" hint-placeholder-count="2">
                             <div style="{{ browserStyles.chunkBlock }}">
                               <div style="{{ browserStyles.chunkHeader }}">{{ ch.lineHeader }}</div>
-                              <div style="{{ browserStyles.chunkBody }}" dangerouslySetInnerHTML="{{ ch.html }}"></div>
+                              <div style="{{ browserStyles.chunkBody }}" sc-camel-dangerously-set-inner-h-t-m-l="{{ ch.html }}"></div>
                             </div>
                           </sc-for>
                         </div>
@@ -459,19 +491,23 @@ const ICON_PACKAGE = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none
 const ICON_CHAT = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v12H8l-4 4V4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path></svg>`;
 const ICON_FOLDER = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 6a1 1 0 011-1h5l2 2h9a1 1 0 011 1v11a1 1 0 01-1 1H4a1 1 0 01-1-1V6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path></svg>`;
 
+// Must track the node names in app/graph/build.py — these are the names the SSE
+// `node` events carry.
 const PIPELINE_STAGES = [
   { key: "rewrite_query", label: "rewrite" },
-  { key: "retrieve", label: "retrieve" },
-  { key: "grade_chunks", label: "grade" },
+  { key: "retrieve", label: "search" },
+  { key: "select_chunks", label: "select" },
   { key: "generate_answer", label: "answer" },
 ];
-const NODE_INDEX = { rewrite_query: 0, retrieve: 1, grade_chunks: 2, generate_answer: 3, answer_not_found: 3 };
+const NODE_INDEX = { rewrite_query: 0, retrieve: 1, select_chunks: 2, generate_answer: 3, answer_not_found: 3 };
+// The last entry deliberately asks about something no ingested repo contains, so
+// the honest not-found path is one click away during a demo.
 const QUICK_ASK_TEXTS = [
   "Where is the database connection configured?",
-  "How does authentication work?",
+  "How does document upload and validation work?",
   "How do I change it to use MySQL instead?",
-  "How does the notification system work?",
   "What environment variables does the application use?",
+  "How does the notification system work?",
 ];
 let _uid = 0;
 function nextId() { return "m" + (_uid++) + "_" + Date.now().toString(36); }
@@ -526,6 +562,13 @@ function formatDate(iso) {
   const pad = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
+// RRF scores are ~1/60 by construction, so a raw score is meaningless as a bar
+// width. Scale against the strongest row in the same list instead.
+function normalizedScore(row, rows) {
+  const best = rows.reduce((m, r) => Math.max(m, Number(r.score) || 0), 0);
+  if (!best) return 0.03;
+  return Math.min(1, (Number(row.score) || 0) / best);
+}
 function renderMarkdown(text) {
   let t = escapeHtml(text || "");
   t = t.replace(/`([^`]+)`/g, '<code style="background:rgba(96,165,250,0.16);padding:1px 5px;border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-size:0.9em;">$1</code>');
@@ -561,8 +604,8 @@ class Component extends DCLogic {
     isMobile: false,
 
     ingestMode: "local",
-    localPath: "./repos/my_repo",
-    localName: "my_repo",
+    localPath: "./repos/document_pipeline",
+    localName: "document_pipeline",
     localNameTouched: false,
     githubUrl: "",
     githubBranch: "",
@@ -570,9 +613,10 @@ class Component extends DCLogic {
     allowlist: [],
     ingestPhase: "form",
     progressCurrent: 0,
-    progressTotal: 20,
+    progressTotal: 0,
     progressFilename: "",
     ingestError: "",
+    ingestWarnings: [],
     ingestResult: null,
     counters: { ingestCount: 0, statFiles: 0, statChunks: 0 },
 
@@ -681,14 +725,14 @@ class Component extends DCLogic {
         return;
       }
     }
-    this.setState((s) => ({ ingestPhase: "progress", ingestError: "", progressCurrent: 0, counters: { ...s.counters, ingestCount: 0 } }));
-    const onProgress = ({ current, filename }) => {
-      this.setState({ progressCurrent: current, progressFilename: filename });
+    this.setState((s) => ({ ingestPhase: "progress", ingestError: "", ingestWarnings: [], progressCurrent: 0, progressTotal: 0, counters: { ...s.counters, ingestCount: 0 } }));
+    const onProgress = ({ current, total, filename }) => {
+      this.setState({ progressCurrent: current, progressTotal: total, progressFilename: filename });
       this.animateNumber("ingestCount", current, 220);
     };
     const onDone = (result) => {
-      this.setState((s) => ({ progressCurrent: s.progressTotal }));
-      this.animateNumber("ingestCount", this.state.progressTotal, 220);
+      this.setState({ progressCurrent: result.file_count, progressTotal: result.file_count });
+      this.animateNumber("ingestCount", result.file_count, 220);
       setTimeout(() => {
         this.setState({ ingestPhase: "success", ingestResult: result, newRepoId: result.id });
         this.animateNumber("statFiles", result.file_count, 900);
@@ -701,10 +745,15 @@ class Component extends DCLogic {
       this.setState({ ingestPhase: "erroring" });
       setTimeout(() => this.setState({ ingestPhase: "form", ingestError: err.message }), 750);
     };
+    // Chunk caps and missing embeddings arrive here. They are not failures, but
+    // they do change what search can find, so they are shown rather than logged.
+    const onWarning = ({ message }) => {
+      this.setState((s) => ({ ingestWarnings: [...(s.ingestWarnings || []), message] }));
+    };
     if (this.state.ingestMode === "local") {
-      this._adapter.ingestLocal({ path: this.state.localPath, name: this.state.localName }, onProgress, onDone, onError);
+      this._adapter.ingestLocal({ path: this.state.localPath, name: this.state.localName }, onProgress, onDone, onError, onWarning);
     } else {
-      this._adapter.ingestGithub({ url: this.state.githubUrl.trim(), branch: this.state.githubBranch.trim() || undefined }, onProgress, onDone, onError);
+      this._adapter.ingestGithub({ url: this.state.githubUrl.trim(), branch: this.state.githubBranch.trim() || undefined }, onProgress, onDone, onError, onWarning);
     }
   };
 
@@ -998,6 +1047,10 @@ class Component extends DCLogic {
       gradedMeterTrack: { width: "70px", height: "5px", borderRadius: "4px", background: t.glassBrd, overflow: "hidden", flexShrink: 0 },
       gradedMeterFill: { height: "100%", background: RELAY_GRADIENT, borderRadius: "4px" },
       gradedScore: { fontFamily: "'JetBrains Mono',monospace", fontSize: "11.5px", color: t.textLo },
+      sourceBadge: {
+        padding: "2px 7px", borderRadius: "5px", background: t.glassBrd, color: t.textLo,
+        fontFamily: "'JetBrains Mono',monospace", fontSize: "10.5px", letterSpacing: "0.02em",
+      },
       gradedReason: { fontSize: "12px", color: t.textLo, marginTop: "4px", fontStyle: "italic" },
       gradedSourceBtn: { fontSize: "11.5px", color: RELAY_3, cursor: "pointer", marginTop: "6px", display: "inline-block" },
       newTokensChip: {
@@ -1074,7 +1127,7 @@ class Component extends DCLogic {
     const barBusy = phase === "progress";
     const barError = phase === "erroring";
     const barDone = phase === "success";
-    const pct = Math.min(100, Math.round((s.progressCurrent / s.progressTotal) * 100));
+    const pct = s.progressTotal > 0 ? Math.min(100, Math.round((s.progressCurrent / s.progressTotal) * 100)) : 0;
     const chevronBase = (i) => ({
       transition: "stroke 250ms ease",
       animation: barBusy ? `relayPulse 1.3s ease-in-out ${i * 150}ms infinite` : "none",
@@ -1150,6 +1203,17 @@ class Component extends DCLogic {
       progressFilename: s.progressFilename,
       countLabel: `${s.counters.ingestCount || 0} / ${s.progressTotal} files processed`,
 
+      hasWarnings: (s.ingestWarnings || []).length > 0,
+      warningRows: (s.ingestWarnings || []).map((message, i) => ({
+        message,
+        rowStyle: {
+          padding: "9px 13px", borderRadius: "9px", marginTop: "8px",
+          background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.28)",
+          color: isDark ? "#fcd34d" : "#92400e", fontSize: "12.5px", lineHeight: 1.45,
+          animation: `fadeUp 280ms ease ${i * 60}ms both`,
+        },
+      })),
+
       showSuccess: phase === "success",
       successCard: { marginTop: "18px", padding: "20px", borderRadius: "14px", background: t.insetBg, border: `1px solid ${t.glassBrd}`, animation: "fadeUp 400ms cubic-bezier(0.34,1.56,0.64,1)" },
       successTitle: { fontSize: "17px", fontWeight: 600, marginBottom: "14px" },
@@ -1199,7 +1263,10 @@ class Component extends DCLogic {
         };
       }).map((st, i, arr) => ({ ...st, connectorStyle: chatStyles.pipelineConnector(st.lit && i < arr.length - 1 && arr[i + 1].lit) }));
       const citationsChips = (m.citations || []).map((c, i) => ({
-        idx: i, num: i + 1, path: c.path,
+        // The backend sends the number as written in the answer prose. Numbering
+        // by array position instead made an answer citing [2] and [5] render
+        // chips labelled [1] and [2].
+        idx: i, num: c.index != null ? c.index : i + 1, path: c.path,
         tooltip: `${c.path}:${c.start_line}-${c.end_line}`,
         isOpen: m.openCitation === i,
         onClick: () => this.toggleCitation(m.id, i),
@@ -1211,20 +1278,33 @@ class Component extends DCLogic {
       }));
       const openChunk = m.openCitation != null && m.citations[m.openCitation] ? m.citations[m.openCitation] : null;
       const displayedGraded = (m.graded && m.graded.length > 0) ? m.graded : (m.retrieved || []).map((r) => ({ ...r, keep: true, reason: "Retrieved" }));
-      const gradedRows = displayedGraded.map((g, i) => ({
-        idx: i,
-        keepIcon: g.keep ? "✓" : "✗",
-        keepIconStyle: { color: g.keep ? RELAY_3 : t.textLo, fontWeight: 700 },
-        pathLabel: `${g.path}:${g.start_line}-${g.end_line}`,
-        scoreLabel: g.score.toFixed(3),
-        meterWidth: `${Math.max(3, Math.round(g.score * 100))}%`,
-        reason: g.reason,
-        sourceOpen: !!m.gradedOpen[i],
-        sourceLabel: m.gradedOpen[i] ? "▾ Hide source" : "▸ View source",
-        toggleSource: () => this.toggleGradedSource(m.id, i),
-        codeHtml: { __html: buildCodeHtml(g.content, g.start_line, codeColors) },
-        rowStyle: { animation: `fadeUp 320ms ease ${i * 40}ms both` },
-      }));
+      const gradedRows = displayedGraded.map((g, i) => {
+        // Claude's relevance judgement when present, retrieval score otherwise.
+        // RRF scores are small by construction (~1/60), so they are scaled
+        // against the top row rather than shown as a raw fraction of 1.
+        const relevance = typeof g.relevance === "number" && g.relevance > 0 ? g.relevance : null;
+        const meterValue = relevance != null ? relevance : normalizedScore(g, displayedGraded);
+        return {
+          idx: i,
+          keepIcon: g.keep ? "✓" : "✗",
+          keepIconStyle: { color: g.keep ? RELAY_3 : t.textLo, fontWeight: 700 },
+          pathLabel: `${g.path}:${g.start_line}-${g.end_line}${g.symbol ? " · " + g.symbol : ""}`,
+          scoreLabel: relevance != null
+            ? `relevance ${relevance.toFixed(2)}`
+            : `score ${Number(g.score || 0).toFixed(3)}`,
+          // Bound per row. This was previously a shared static style, so every
+          // meter rendered full width regardless of score.
+          meterFillStyle: { ...chatStyles.gradedMeterFill, width: `${Math.max(3, Math.round(meterValue * 100))}%` },
+          sourceBadges: (g.sources || []).map((s) => ({ label: s, badgeStyle: chatStyles.sourceBadge })),
+          hasSources: (g.sources || []).length > 0,
+          reason: g.reason,
+          sourceOpen: !!m.gradedOpen[i],
+          sourceLabel: m.gradedOpen[i] ? "▾ Hide source" : "▸ View source",
+          toggleSource: () => this.toggleGradedSource(m.id, i),
+          codeHtml: { __html: buildCodeHtml(g.content, g.start_line, codeColors) },
+          rowStyle: { animation: `fadeUp 320ms ease ${i * 40}ms both` },
+        };
+      });
       return {
         id: m.id, isUser: false, isAssistant: true, isError: !!m.errorMessage, text: m.errorMessage || "",
         stagesRender, showTrack: !collapsed, showStrip: collapsed,

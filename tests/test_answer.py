@@ -16,7 +16,7 @@ def _make_state(chunks):
         graded=graded,
         answer=None,
         citations=[],
-        mode="fts",
+        mode="hybrid",
         repo_id=1,
     )
 

@@ -41,7 +41,7 @@ def test_not_found_message():
     state = RagState(
         question="nonexistent feature", chat_history=[], rewritten_query="nonexistent feature",
         retrieved=[ChunkData(path="auth/login.py", start_line=1, end_line=5, content="x", score=0.5)],
-        graded=[], answer=None, citations=[], mode="fts", repo_id=1,
+        graded=[], answer=None, citations=[], mode="hybrid", repo_id=1,
     )
     result = answer_not_found(state)
     assert "couldn't find" in result["answer"]
@@ -53,10 +53,15 @@ def test_not_found_falls_back_without_config():
     from app.graph.nodes.not_found import answer_not_found
     state = RagState(
         question="nonexistent feature", chat_history=[], rewritten_query="nonexistent feature",
-        retrieved=[], graded=[], answer=None, citations=[], mode="fts", repo_id=1,
+        retrieved=[], graded=[], answer=None, citations=[], mode="hybrid", repo_id=1,
     )
     result = answer_not_found(state)
-    assert "the codebase" in result["answer"]
+    assert "couldn't find" in result["answer"]
+    assert "rephrasing" in result["answer"]
+    # No blank suggestion artifact. Absolute paths used to yield an empty leading
+    # segment, rendering "look in  for relevant files".
+    assert "  " not in result["answer"]
+    assert "look in ," not in result["answer"]
 
 
 def test_not_found_suggests_top_two_directories_from_index():
@@ -74,7 +79,7 @@ def test_not_found_suggests_top_two_directories_from_index():
     state = RagState(
         question="nonexistent feature", chat_history=[], rewritten_query="nonexistent feature",
         retrieved=[ChunkData(path="totally/unrelated.py", start_line=1, end_line=5, content="x", score=0.1)],
-        graded=[], answer=None, citations=[], mode="fts", repo_id=1,
+        graded=[], answer=None, citations=[], mode="hybrid", repo_id=1,
     )
     config = {"configurable": {"get_session": lambda: mock_session}}
     result = answer_not_found(state, config)
@@ -89,7 +94,7 @@ def test_generate_answer_no_kept_chunks():
     from app.graph.nodes.answer import generate_answer
     state = RagState(
         question="test", chat_history=[], rewritten_query="test",
-        retrieved=[], graded=[], answer=None, citations=[], mode="fts", repo_id=1,
+        retrieved=[], graded=[], answer=None, citations=[], mode="hybrid", repo_id=1,
     )
     result = generate_answer(state)
     assert "couldn't find" in result["answer"]
@@ -111,7 +116,7 @@ def test_generate_answer_uses_streaming_call(mock_get_llm_streaming):
             chunk=ChunkData(path="db.py", start_line=1, end_line=10, content="x", score=0.9),
             keep=True, reason="r",
         )],
-        answer=None, citations=[], mode="fts", repo_id=1,
+        answer=None, citations=[], mode="hybrid", repo_id=1,
     )
     result = generate_answer(state)
 

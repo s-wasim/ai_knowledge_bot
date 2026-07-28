@@ -8,6 +8,10 @@ class HealthOut(BaseModel):
     db_error: Optional[str] = None
     mode: str
     mode_display: str
+    embed_model_ok: bool = False
+    embed_model: str = ""
+    embed_dims: int = 0
+    embed_error: Optional[str] = None
 
 
 class RepoOut(BaseModel):

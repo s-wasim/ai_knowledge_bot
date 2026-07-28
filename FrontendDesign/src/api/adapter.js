@@ -94,22 +94,22 @@ export async function listRepos() {
 // =============================================================================
 // POST /ingest/local  (Server-Sent Events)
 // =============================================================================
-export function ingestLocal({ path, name }, onProgress, onDone, onError) {
+export function ingestLocal({ path, name }, onProgress, onDone, onError, onWarning) {
   return sseFetch(
     `${API_BASE}/ingest/local`,
     { path, name },
-    { onProgress, onDone, onError }
+    { onProgress, onDone, onError, onWarning }
   );
 }
 
 // =============================================================================
 // POST /ingest/github  (Server-Sent Events)
 // =============================================================================
-export function ingestGithub({ url, branch }, onProgress, onDone, onError) {
+export function ingestGithub({ url, branch }, onProgress, onDone, onError, onWarning) {
   return sseFetch(
     `${API_BASE}/ingest/github`,
     { url, branch },
-    { onProgress, onDone, onError }
+    { onProgress, onDone, onError, onWarning }
   );
 }
 

@@ -17,7 +17,7 @@ class TestConditionalEdges:
             "graded": [],
             "answer": None,
             "citations": [],
-            "mode": "vector",
+            "mode": "hybrid",
         }
         cond = (
             lambda s: "answer_not_found"
@@ -38,7 +38,7 @@ class TestConditionalEdges:
             "graded": [GradedChunk(chunk=chunk, keep=True, reason="relevant")],
             "answer": None,
             "citations": [],
-            "mode": "vector",
+            "mode": "hybrid",
         }
         cond = (
             lambda s: "answer_not_found"
@@ -75,7 +75,7 @@ class TestGraphInvocation:
                 "graded": [],
                 "answer": None,
                 "citations": [],
-                "mode": "vector",
+                "mode": "hybrid",
             },
             config={"configurable": {"retriever": mock_retriever}},
         )
@@ -100,23 +100,27 @@ class TestGraphInvocation:
                 "graded": [GradedChunk(chunk=chunk, keep=False, reason="irrelevant")],
                 "answer": None,
                 "citations": [],
-                "mode": "vector",
+                "mode": "hybrid",
             },
             config={"configurable": {"retriever": mock_retriever}},
         )
 
         assert result["rewritten_query"] == "what is x?"
 
-    @patch("app.graph.nodes.grade.get_llm")
+    @patch("app.graph.nodes.select.get_llm")
     def test_retriever_from_config_is_used(self, mock_get_llm):
         """Retriever must flow through LangGraph's config, not a global singleton."""
         mock_retriever = MagicMock()
         mock_retriever.search.return_value = [
             ChunkData(path="a.py", start_line=1, end_line=3, content="x", score=0.9)
         ]
+        # Selection now uses tool-use-validated structured output rather than a
+        # JSON string, so the double is the structured runnable.
+        from app.graph.nodes.select import SelectionItem, SelectionResult
+
         mock_llm = MagicMock()
-        mock_llm.invoke.return_value.content = (
-            '{"grades": [{"index": 1, "keep": false, "reason": "irrelevant"}]}'
+        mock_llm.with_structured_output.return_value.invoke.return_value = SelectionResult(
+            items=[SelectionItem(index=1, keep=False, relevance=0.0, reason="irrelevant")]
         )
         mock_get_llm.return_value = mock_llm
 
@@ -131,7 +135,7 @@ class TestGraphInvocation:
                 "graded": [],
                 "answer": None,
                 "citations": [],
-                "mode": "vector",
+                "mode": "hybrid",
                 "repo_id": 1,
             },
             config={"configurable": {"retriever": mock_retriever}},
@@ -152,7 +156,7 @@ class TestGraphInvocation:
                 "graded": [],
                 "answer": None,
                 "citations": [],
-                "mode": "vector",
+                "mode": "hybrid",
                 "repo_id": 1,
             }
         )

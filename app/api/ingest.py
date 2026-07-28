@@ -22,16 +22,22 @@ def _sse_frame(event: str, data: dict) -> str:
 
 
 def _run_with_progress_sse(target: Callable, source: str):
-    """Run `target(progress_callback=...)` on a worker thread, translating its
-    synchronous callback calls into SSE frames as they arrive."""
+    """Run `target(progress_callback=..., warning_callback=...)` on a worker
+    thread, translating its synchronous callbacks into SSE frames as they arrive."""
     q: "queue.Queue" = queue.Queue()
 
-    def progress_callback(current, chunk_added, filename):
-        q.put(("progress", {"current": current, "filename": filename}))
+    def progress_callback(current, total, chunk_added, filename):
+        q.put(("progress", {"current": current, "total": total, "filename": filename}))
+
+    def warning_callback(message):
+        # Caps and embedding shortfalls reach the user instead of only the log.
+        q.put(("warning", {"message": message}))
 
     def worker():
         try:
-            repo = target(progress_callback=progress_callback)
+            repo = target(
+                progress_callback=progress_callback, warning_callback=warning_callback
+            )
             q.put(
                 (
                     "done",
@@ -70,8 +76,11 @@ def ingest_local(body: IngestLocalRequest) -> StreamingResponse:
             yield _sse_frame("error", {"message": f"Directory not found: {path}"})
             return
         yield from _run_with_progress_sse(
-            lambda progress_callback: ingest_repo(
-                repo_name=name, root_dir=str(root), progress_callback=progress_callback
+            lambda progress_callback, warning_callback: ingest_repo(
+                repo_name=name,
+                root_dir=str(root),
+                progress_callback=progress_callback,
+                warning_callback=warning_callback,
             ),
             source="Local",
         )
@@ -86,8 +95,11 @@ def ingest_github(body: IngestGithubRequest) -> StreamingResponse:
 
     def generate():
         yield from _run_with_progress_sse(
-            lambda progress_callback: ingest_github_url(
-                url=url, branch=branch, progress_callback=progress_callback
+            lambda progress_callback, warning_callback: ingest_github_url(
+                url=url,
+                branch=branch,
+                progress_callback=progress_callback,
+                warning_callback=warning_callback,
             ),
             source="GitHub",
         )

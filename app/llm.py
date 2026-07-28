@@ -2,6 +2,8 @@ import os
 
 from langchain_anthropic import ChatAnthropic
 
+DEFAULT_MODEL = os.environ.get("KB_ANTHROPIC_MODEL", "claude-sonnet-5")
+
 
 def extract_text(content) -> str:
     """Return the plain text portion of a LangChain message/chunk `content` value.
@@ -22,22 +24,30 @@ def extract_text(content) -> str:
     return ""
 
 
-def get_llm(model="claude-sonnet-5", temperature=0):
+def _require_api_key() -> str:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise ValueError("ANTHROPIC_API_KEY environment variable is not set")
+    return api_key
+
+
+def get_llm(model: str = DEFAULT_MODEL, temperature: float = 0):
+    """Non-streaming client.
+
+    temperature is actually forwarded — it previously sat in the signature and was
+    dropped, which left relevance grading and query rewriting non-reproducible.
+    """
     return ChatAnthropic(
         model=model,
-        api_key=api_key,
+        api_key=_require_api_key(),
+        temperature=temperature,
     )
 
 
-def get_llm_streaming(model="claude-sonnet-5", temperature=0):
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise ValueError("ANTHROPIC_API_KEY environment variable is not set")
+def get_llm_streaming(model: str = DEFAULT_MODEL, temperature: float = 0):
     return ChatAnthropic(
         model=model,
+        api_key=_require_api_key(),
+        temperature=temperature,
         streaming=True,
-        api_key=api_key,
     )

@@ -13,6 +13,10 @@ pydantic>=2.0,<3
 # Local open-source code embeddings, replacing the Voyage AI API.
 sentence-transformers>=3.0,<6
 einops>=0.8,<1
+# jina-embeddings-v2-base-code ships custom modelling code (trust_remote_code)
+# that imports transformers.pytorch_utils.find_pruneable_heads_and_indices,
+# removed in transformers 5.x. Verified present in 4.57.6.
+transformers>=4.40,<5
 
 # AST-aware chunking.
 tree-sitter>=0.23,<1

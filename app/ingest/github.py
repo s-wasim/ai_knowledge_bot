@@ -84,6 +84,7 @@ def ingest_github_url(
     url: str,
     branch: str | None = None,
     progress_callback=None,
+    warning_callback=None,
 ) -> tuple:
     """Ingest a repo from a GitHub URL.
 
@@ -100,12 +101,15 @@ def ingest_github_url(
 
     try:
         source_url = f"https://github.com/{owner}/{repo}"
+        # content_dir is the extracted `repo-branch/` directory, so stored paths
+        # come out repo-relative rather than rooted in the temp directory.
         repo_obj = ingest_repo(
             repo_name=repo,
             root_dir=content_dir,
             source_url=source_url,
             branch=effective_branch,
             progress_callback=progress_callback,
+            warning_callback=warning_callback,
         )
         return repo_obj
     finally:

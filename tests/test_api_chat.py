@@ -16,7 +16,7 @@ def _fake_stream(state, config, stream_mode):
 
     yield "updates", {"rewrite_query": {"rewritten_query": state["question"]}}
     yield "updates", {"retrieve": {"retrieved": [chunk]}}
-    yield "updates", {"grade_chunks": {"graded": [graded]}}
+    yield "updates", {"select_chunks": {"graded": [graded]}}
     yield "messages", (SimpleNamespace(content="The "), {"langgraph_node": "generate_answer"})
     yield "messages", (SimpleNamespace(content="answer."), {"langgraph_node": "generate_answer"})
     yield "updates", {"generate_answer": {"answer": "The answer.", "citations": [citation]}}
@@ -28,7 +28,7 @@ class TestChat:
     def test_streams_node_token_and_final_events(
         self, mock_get_retriever_and_mode, mock_get_graph
     ):
-        mock_get_retriever_and_mode.return_value = (MagicMock(), "fts")
+        mock_get_retriever_and_mode.return_value = (MagicMock(), "hybrid")
         fake_graph = MagicMock()
         fake_graph.stream.side_effect = _fake_stream
         mock_get_graph.return_value = fake_graph
@@ -57,7 +57,7 @@ class TestChat:
     ):
         """A thinking-block chunk (list-shaped content) must be skipped in the
         SSE token stream instead of being forwarded as-is or crashing."""
-        mock_get_retriever_and_mode.return_value = (MagicMock(), "fts")
+        mock_get_retriever_and_mode.return_value = (MagicMock(), "hybrid")
 
         def _fake_stream_with_thinking(state, config, stream_mode):
             chunk = ChunkData(path="app/db.py", start_line=1, end_line=10, content="engine = ...", score=0.9)
@@ -91,7 +91,7 @@ class TestChat:
     def test_graph_exception_emits_error_event(
         self, mock_get_retriever_and_mode, mock_get_graph
     ):
-        mock_get_retriever_and_mode.return_value = (MagicMock(), "fts")
+        mock_get_retriever_and_mode.return_value = (MagicMock(), "hybrid")
         fake_graph = MagicMock()
         fake_graph.stream.side_effect = RuntimeError("llm unavailable")
         mock_get_graph.return_value = fake_graph
