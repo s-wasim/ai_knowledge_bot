@@ -1,10 +1,20 @@
+"""Line-window chunking.
+
+These tests covered `chunk_file` before chunking became AST-aware. The windowing
+algorithm they describe is unchanged — it is now the fallback path used for
+unrecognised extensions, unparseable sources, and oversized AST nodes — so they
+target `line_window_chunks` directly. `chunk_file` dispatch is covered by
+tests/test_ast_chunker.py.
+"""
+
 from app.ingest.chunker import chunk_file
+from app.ingest.chunker.text_chunker import line_window_chunks
 
 
 def test_200_line_file():
     path = "/fake/file.py"
     text = '\n'.join(f"line {i}" for i in range(1, 201))
-    result = chunk_file(path, text)
+    result = line_window_chunks(path, text)
     assert len(result) == 3
     assert result[0]["start_line"] == 1
     assert result[0]["end_line"] == 80
@@ -17,7 +27,7 @@ def test_200_line_file():
 def test_30_line_file():
     path = "/fake/file.py"
     text = '\n'.join(f"line {i}" for i in range(1, 31))
-    result = chunk_file(path, text)
+    result = line_window_chunks(path, text)
     assert len(result) == 1
     assert result[0]["start_line"] == 1
     assert result[0]["end_line"] == 30
@@ -27,7 +37,7 @@ def test_reconstruct_coverage():
     path = "/fake/file.py"
     lines = [f"line {i}" for i in range(1, 201)]
     text = '\n'.join(lines)
-    result = chunk_file(path, text)
+    result = line_window_chunks(path, text)
     covered = [False] * 200
     for chunk in result:
         for i in range(chunk["start_line"] - 1, chunk["end_line"]):
@@ -36,13 +46,14 @@ def test_reconstruct_coverage():
 
 
 def test_empty_file():
+    assert line_window_chunks("/fake/file.py", "") == []
     assert chunk_file("/fake/file.py", "") == []
 
 
 def test_exact_window():
     path = "/fake/file.py"
     text = '\n'.join(f"line {i}" for i in range(1, 81))
-    result = chunk_file(path, text)
+    result = line_window_chunks(path, text)
     assert len(result) == 1
     assert result[0]["start_line"] == 1
     assert result[0]["end_line"] == 80
@@ -51,7 +62,7 @@ def test_exact_window():
 def test_boundary_merge():
     path = "/fake/file.py"
     text = '\n'.join(f"line {i}" for i in range(1, 22))
-    result = chunk_file(path, text, window=10, overlap=8, min_chunk=10)
+    result = line_window_chunks(path, text, window=10, overlap=8, min_chunk=10)
     assert len(result) == 6
     assert result[-1]["start_line"] == 11
     assert result[-1]["end_line"] == 21
@@ -60,7 +71,7 @@ def test_boundary_merge():
 def test_overlap_correct():
     path = "/fake/file.py"
     text = '\n'.join(f"line {i}" for i in range(1, 201))
-    result = chunk_file(path, text, window=80, overlap=20)
+    result = line_window_chunks(path, text, window=80, overlap=20)
     for i in range(len(result) - 1):
         a = result[i]["content"].split('\n')
         b = result[i + 1]["content"].split('\n')
@@ -74,5 +85,11 @@ def test_overlap_correct():
 def test_1_based_line_numbers():
     path = "/fake/file.py"
     text = '\n'.join(f"line {i}" for i in range(1, 201))
-    result = chunk_file(path, text)
+    result = line_window_chunks(path, text)
     assert result[0]["start_line"] == 1
+
+
+def test_window_chunks_report_no_symbol_and_no_language():
+    result = line_window_chunks("/fake/file.py", "line 1\nline 2\n")
+    assert result[0]["symbol"] is None
+    assert result[0]["language"] is None

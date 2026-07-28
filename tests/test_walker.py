@@ -73,3 +73,31 @@ def test_custom_allowlist():
 def test_nonexistent_directory():
     with pytest.raises(FileNotFoundError):
         list(walk_directory("/nonexistent/path/12345"))
+
+
+def test_count_files_matches_walk_directory():
+    """count_files must apply exactly the same filters as walk_directory,
+    otherwise the ingest progress total drifts from the work actually done."""
+    from app.ingest.walker import count_files
+
+    assert count_files(FIXTURE_DIR) == len(list(walk_directory(FIXTURE_DIR)))
+
+
+def test_count_files_does_not_read_file_bodies(monkeypatch):
+    """The pre-walk exists to make progress totals cheap. Reading every file's
+    text just to count them doubles ingest I/O on large repos."""
+    from pathlib import Path as _Path
+
+    from app.ingest.walker import count_files
+
+    def explode(*args, **kwargs):
+        raise AssertionError("count_files must not read file contents")
+
+    monkeypatch.setattr(_Path, "read_text", explode)
+    assert count_files(FIXTURE_DIR) > 0
+
+
+def test_count_files_respects_allowlist():
+    from app.ingest.walker import count_files
+
+    assert count_files(FIXTURE_DIR, allowlist={".sql"}) == 1

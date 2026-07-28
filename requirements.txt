@@ -2,7 +2,6 @@ fastapi>=0.115,<1
 uvicorn[standard]>=0.32,<1
 langgraph>=0.2,<1
 langchain-anthropic>=0.2,<1
-voyageai>=0.2,<1
 sqlalchemy>=2.0,<3
 psycopg2-binary>=2.9,<3
 pgvector>=0.3,<1
@@ -10,3 +9,13 @@ httpx>=0.28,<1
 pygments>=2.18,<3
 anthropic>=0.40,<1
 pydantic>=2.0,<3
+
+# Local open-source code embeddings, replacing the Voyage AI API.
+sentence-transformers>=3.0,<6
+einops>=0.8,<1
+
+# AST-aware chunking.
+tree-sitter>=0.23,<1
+tree-sitter-language-pack>=0.7,<1
+
+pytest>=8.0,<9

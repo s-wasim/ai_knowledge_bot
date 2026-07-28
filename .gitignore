@@ -28,3 +28,6 @@ Thumbs.db
 .docker/
 
 .superpowers/
+
+# Test caches
+.pytest_cache/

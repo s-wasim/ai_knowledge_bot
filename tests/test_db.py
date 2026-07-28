@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 
-from app.db import Base, Repo, Chunk
+from app.db import Base, Repo, Chunk, EMBED_DIMS
 
 
 @pytest.fixture(scope="function")
@@ -39,6 +39,19 @@ class TestModels:
         assert not columns["end_line"].nullable
         assert not columns["content"].nullable
         assert columns["embedding"].nullable
+
+    def test_chunk_has_symbol_and_language_columns(self):
+        cols = {c.name for c in Chunk.__table__.columns}
+        assert {"symbol", "language"} <= cols
+
+    def test_symbol_and_language_are_nullable(self):
+        columns = {c.name: c for c in Chunk.__table__.columns}
+        assert columns["symbol"].nullable
+        assert columns["language"].nullable
+
+    def test_embedding_dimension_is_768(self):
+        assert EMBED_DIMS == 768
+        assert Chunk.__table__.c.embedding.type.dim == 768
 
     def test_chunk_foreign_key(self):
         fk = next(iter(Chunk.__table__.foreign_keys))
